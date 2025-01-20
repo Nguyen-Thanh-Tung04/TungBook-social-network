@@ -28,7 +28,7 @@ const Header = () => {
     <header className="bg-gradient-to-r from-blue-600 to-blue-400 text-white py-4 shadow-md px-10">
       <div className="container mx-auto flex justify-between items-center">
         {/* Logo */}
-        <h1 className="text-3xl font-extrabold tracking-tight">TungBook</h1>
+        <h1 className="text-3xl font-extrabold tracking-tight"><a href="/home">TungBook</a></h1>
 
         {/* Search Input */}
         <div className="flex-grow mx-8">
@@ -44,7 +44,11 @@ const Header = () => {
           <ul className="flex space-x-6">
             {isLoggedIn && (
               <li>
-                <a href="/home" className="hover:text-gray-200 transition duration-200">Tung</a>
+                <a href="/profile" className="hover:text-gray-200 transition duration-200"> <img
+                src="https://randomuser.me/api/portraits/men/1.jpg" // Avatar người dùng
+                alt="User Avatar"
+                className="w-12 h-12 rounded-full border-4 border-white"
+              /></a>
               </li>
             )}
             
