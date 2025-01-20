@@ -58,18 +58,18 @@ class AuthController extends Controller
 
     // Logout user
     public function logout(Request $request)
-{
-    // Kiểm tra nếu người dùng đã xác thực
-    $user = $request->user();
+    {
+        // Kiểm tra nếu người dùng đã xác thực
+        $user = $request->user();
 
-    if (!$user) {
-        return response()->json(['message' => 'User not authenticated'], 401);
+        if (!$user) {
+            return response()->json(['message' => 'User not authenticated'], 401);
+        }
+
+        // Xóa token hiện tại
+        $user->currentAccessToken()->delete();
+
+        return response()->json(['message' => 'Logout successful']);
     }
-
-    // Xóa token hiện tại
-    $user->currentAccessToken()->delete();
-
-    return response()->json(['message' => 'Logout successful']);
-}
 
 }
