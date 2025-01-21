@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState , useEffect } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 
@@ -8,6 +8,14 @@ const Login = () => {
   const [error, setError] = useState('');
   const [message, setMessage] = useState('');
   const navigate = useNavigate(); // Dùng để chuyển hướng
+
+    // Kiểm tra nếu đã đăng nhập
+    useEffect(() => {
+      const token = localStorage.getItem('authToken');
+      if (token) {
+        navigate('/home'); // Nếu đã đăng nhập, chuyển hướng về trang home
+      }
+    }, [navigate]);
 
   const handleLogin = async (e) => {
     e.preventDefault();
