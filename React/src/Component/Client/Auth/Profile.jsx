@@ -86,7 +86,7 @@ function ProfilePage() {
             <div className="p-4 ">
                 {activeTab === "first" && (
                     <div>
-                        <div className="min-h-screen bg-gray-100 text-gray-600 flex">
+                        <div className="min-h-screen bg-gray-100 text-gray-600 flex max-w-[1120px]">
                             {/* Sidebar */}
                             <div className="w-1/4 bg-gray-100 p-4">
                                 <div className="mb-6 bg-white p-4 rounded shadow-md">
@@ -183,7 +183,7 @@ function ProfilePage() {
                                     />
                                 </div>
 
-                                <div className="bg-white p-4 rounded shadow-md">
+                                <div className="bg-white p-4 rounded shadow-md ">
                                     {/* Header */}
                                     <div className="flex items-center mb-4">
                                         <img
@@ -202,11 +202,11 @@ function ProfilePage() {
                                     </div>
 
                                     {/* Image */}
-                                    <div className="flex justify-center">
+                                    <div className="flex justify-center" >
                                         <img
                                             src="https://phunugioi.com/wp-content/uploads/2020/04/nhung-hinh-anh-dep-ve-que-huong-dat-nuoc-con-nguoi-viet-nam.jpg"
                                             alt="Post"
-                                            className="max-h-[350px] object-contain rounded mb-4"
+                                            className=" object-contain rounded mb-4"
                                         />
                                     </div>
 

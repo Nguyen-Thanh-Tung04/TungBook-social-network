@@ -98,7 +98,7 @@ function LeftSidebar() {
                     Lối tắt của bạn{" "}
                 </h3>
                 <ul className="space-y-4 mt-2">
-                    <a href="/group">
+                    <a href="/groups/:id">
                         <li className="flex items-center hover:bg-gray-200 p-2 rounded-lg">
                             <img
                                 src="https://baogiaothong.mediacdn.vn/upload/4-2022/images/2022-10-05/10-nha-khoa-hoc-vi-dai-nhat-moi-thoi-dai-1-1664953509-223-width740height681.jpg"
@@ -108,7 +108,7 @@ function LeftSidebar() {
                             <span className="px-3">Nhóm nhà bác học </span>
                         </li>
                     </a>
-                    <a href="/group">
+                    <a href="/groups/:id">
                         <li className="flex items-center hover:bg-gray-200 p-2 rounded-lg">
                             <img
                                 src="https://baogiaothong.mediacdn.vn/upload/4-2022/images/2022-10-05/10-nha-khoa-hoc-vi-dai-nhat-moi-thoi-dai-1-1664953509-223-width740height681.jpg"

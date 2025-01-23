@@ -24,7 +24,7 @@ const Home = () => {
 
     return (
         <div className="bg-gray-100 min-h-screen">
-            <main className="container mx-auto px-36 py-8 max-w-[1005px]">
+            <main className="container mx-auto px-36 py-8">
                 {/* Thanh trạng thái */}
                 <div className="bg-white p-4 rounded-lg shadow-md mb-6">
                     <div className="flex items-center">
@@ -82,10 +82,7 @@ const Home = () => {
                             key={index}
                             className="relative w-24 h-40 bg-gray-700 rounded-lg shadow-md"
                         >
-                            <a
-                                href="/StoryDetail"
-                                className="w-full h-full block"
-                            >
+                            <a href="/StoryDetail" className="w-full h-full block">
                                 <img
                                     src={friend.img}
                                     alt={friend.name}
@@ -102,7 +99,7 @@ const Home = () => {
                 </div>
 
                 {/* Bài viết 1 ảnh  */}
-                <div className="flex-1  py-7  mx-auto">
+                <div className="flex-1 p-4 pt-7 max-w-[1005px] " >
                     <div className="bg-white p-4 rounded shadow-md">
                         {/* Header */}
                         <div className="flex items-center mb-4">
@@ -120,22 +117,18 @@ const Home = () => {
                                 </p>
                             </div>
                         </div>
-                        {/* Content */}
-                        <p className="text-sm text-gray-700 mb-4">
-                            Lao động là vinh quang .
-                        </p>
 
                         {/* Image */}
-                        <div className="max-w-full rounded overflow-hidden">
+                        <div className="flex justify-center">
                             <img
                                 src="https://phunugioi.com/wp-content/uploads/2020/04/nhung-hinh-anh-dep-ve-que-huong-dat-nuoc-con-nguoi-viet-nam.jpg"
                                 alt="Post"
-                                className="w-full h-auto object-cover"
+                                className="object-contain rounded mb-4"
                             />
                         </div>
 
                         {/* Like, Comment, Share */}
-                        <div className="flex justify-between items-center text-gray-600 text-sm mt-4">
+                        <div className="flex justify-between items-center text-gray-600 text-sm">
                             <div className="flex space-x-2">
                                 <button className="flex items-center space-x-1">
                                     <span>👍</span>
@@ -220,6 +213,7 @@ const Home = () => {
                         </div>
                     </div>
                 </div>
+
                 {/* Bài viết 2 ảnh */}
                 <div className="bg-white p-4 rounded-lg shadow-md mb-6">
                     {/* Header */}

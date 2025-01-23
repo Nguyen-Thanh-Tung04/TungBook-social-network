@@ -9,6 +9,7 @@ import StoryDetail from './Component/Client/StoryDetail';
 import Chat from './Component/Client/Chat';
 import Friends from './Component/Client/Friends';
 import Groups from './Component/Client/Groups'; 
+import GroupsDetail from './Component/Client/GroupsDetail';
 
 
 const App = () => {
@@ -27,6 +28,7 @@ const App = () => {
           <Route path="chat" element={<Chat />} /> 
           <Route path="friends" element={<Friends />} />
           <Route path="groups" element={<Groups />} />
+          <Route path="groups/:id" element={<GroupsDetail />} />
         </Route>
       </Routes>
     </Router>
