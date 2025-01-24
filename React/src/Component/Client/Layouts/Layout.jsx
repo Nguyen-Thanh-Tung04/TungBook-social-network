@@ -11,7 +11,7 @@ const Layout = () => {
 
   // Kiểm tra nếu người dùng đang ở trang đăng nhập hoặc đăng ký
   const isAuthPage =
-    location.pathname === "/login" || location.pathname === "/regester" || location.pathname === "/chat";
+    location.pathname === "/login" || location.pathname === "/regester" ;
 
   return (
     <div className="flex flex-col min-h-screen">
@@ -19,7 +19,7 @@ const Layout = () => {
       <div className="flex flex-grow">
         {/* Left Sidebar */}
         {!isAuthPage && (
-          <div className="w-1/6 bg-gray-200 p-4">
+          <div className="w-1/6 bg-gray-200 p-4 scrollbar scrollbar-thin scrollbar-thumb-blue-500 scrollbar-track-gray-300">
             <LeftSidebar />
           </div>
         )}
