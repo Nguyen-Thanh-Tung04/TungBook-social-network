@@ -23,8 +23,8 @@ const Home = () => {
     ];
 
     return (
-        <div className="bg-gray-100 min-h-screen">
-            <main className="container mx-auto px-36 py-8 max-w-[1005px]">
+        <div className="" style={{ width: "50vw" }}>
+            <main className="container mx-auto px-9 py-8 max-w-[1005px] bg-gray-200 ">
                 {/* Thanh trạng thái */}
                 <div className="bg-white p-4 rounded-lg shadow-md mb-6">
                     <div className="flex items-center">

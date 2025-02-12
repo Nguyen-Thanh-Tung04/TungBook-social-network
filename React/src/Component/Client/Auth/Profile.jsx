@@ -11,7 +11,7 @@ function ProfilePage() {
     const [activeTab, setActiveTab] = useState("first");
 
     return (
-        <div className=" bg-gray-100 min-h-screen">
+        <div className=" bg-gray-100 min-h-screen " style={{ width: "50vw" }}>
             {/* Header */}
             <div className="bg-gradient-to-r from-blue-500 to-teal-400 p-6 flex items-center justify-between">
                 <div className="flex items-center">

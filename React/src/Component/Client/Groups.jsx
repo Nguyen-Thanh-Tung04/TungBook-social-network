@@ -88,7 +88,7 @@ function Groups() {
         );
 
     return (
-        <div className="bg-gray-100 min-h-screen p-6">
+        <div className="bg-gray-100 min-h-screen p-6" style={{ width: "50vw" }}>
             <h2 className="text-lg font-semibold mb-4">
                 Tất cả các nhóm ({filteredGroups.length})
             </h2>

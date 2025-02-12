@@ -78,7 +78,7 @@ const Register = () => {
     };
 
     return (
-        <div className="max-w-md mx-auto mt-10 p-6 border border-gray-300 rounded-lg shadow-lg bg-white">
+        <div className="max-w-md mx-auto mt-10 p-6 border border-gray-300 rounded-lg shadow-lg bg-white" style={{ width: "50vw",height: "60vh" }}>
             <h2 className="text-2xl font-bold text-center text-gray-800 mb-6">
                 Đăng ký
             </h2>

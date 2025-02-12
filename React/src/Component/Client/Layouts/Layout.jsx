@@ -8,7 +8,7 @@ import RightSidebar from "./RightSidebar";
 
 const Layout = () => {
   const location = useLocation();
-  const isAuthPage = location.pathname === "/login" || location.pathname === "/register";
+  const isAuthPage = location.pathname === "/login" || location.pathname === "/regester";
   const isChatPage = location.pathname.startsWith("/chat");
 
   return (
@@ -27,7 +27,7 @@ const Layout = () => {
         )}
 
         {/* Main Content Area */}
-        <main className={`flex-grow flex ${isChatPage ? "overflow-hidden" : "overflow-y-auto"} ${isAuthPage || isChatPage ? "mx-auto max-w-full" : "ml-[16.67%] mr-[16.67%]"}`}>
+        <main className={`flex-grow flex ${isChatPage ? "overflow-hidden" : "overflow-y-auto"} ${isAuthPage || isChatPage ? "mx-auto max-w-full" : "ml-[10.67%] mr-[10.67%]"}`}>
           <Outlet /> {/* Đây là nơi trang Chat sẽ được render */}
         </main>
 
@@ -40,7 +40,7 @@ const Layout = () => {
       </div>
 
       {/* Footer (chỉ hiển thị khi kéo xuống hết trang) */}
-      {!isChatPage && <Footer />}
+      {/* {!isChatPage && <Footer />} */}
     </div>
   );
 };
