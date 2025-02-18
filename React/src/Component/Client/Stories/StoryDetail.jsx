@@ -1,5 +1,5 @@
 import React from "react";
-import { FaChevronLeft, FaChevronRight } from "react-icons/fa";
+import { FaChevronLeft, FaChevronRight, FaTimes } from "react-icons/fa";
 
 function StoryDetail() {
     const stories = [
@@ -31,7 +31,7 @@ function StoryDetail() {
     ];
 
     return (
-        <div className="flex h-screen bg-gray-900 text-white">
+        <div className="flex h-screen bg-gray-900 text-white" >
             {/* Sidebar (Danh sách tin) */}
             <div className="w-1/4 bg-gray-900 p-4">
                 <h2 className="text-lg font-semibold mb-4">Tin</h2>
@@ -72,9 +72,9 @@ function StoryDetail() {
             </div>
 
             {/* Story Content */}
-            <div className="flex-1 flex flex-col items-center justify-between p-4">
+            <div className="flex-1 flex flex-col items-center p-4">
                 {/* Header */}
-                <div className="w-full flex justify-between items-center mb-4">
+                <div className="w-full flex justify-between items-center mb-4 relative">
                     <div className="flex items-center">
                         <img
                             src="https://randomuser.me/api/portraits/men/1.jpg"
@@ -85,9 +85,17 @@ function StoryDetail() {
                             <p className="font-semibold">Anh Tùng</p>
                             <p className="text-sm text-gray-400">5 giờ</p>
                         </div>
+                        {/* Icon Close ở góc phải */}
                     </div>
-                    <div className="text-gray-400 text-lg">...</div>
+
+                    <button
+                        onClick={() => window.history.back()} // Quay lại trang trước
+                        className="absolute right-4  transform   text-white hover:text-gray-300"
+                    >
+                        <FaTimes className="text-2xl" />
+                    </button>
                 </div>
+
 
                 {/* Images */}
                 <div className="relative w-full flex flex-col gap-4">
@@ -101,6 +109,7 @@ function StoryDetail() {
                         src="https://baogiaothong.mediacdn.vn/upload/4-2022/images/2022-10-05/10-nha-khoa-hoc-vi-dai-nhat-moi-thoi-dai-1-1664953509-223-width740height681.jpg"
                         alt="Story Image 1"
                         className="w-full h-auto object-cover rounded-lg"
+                        style={{ height: "500px" }}
                     />
 
                     {/* Nút Sang Phải */}

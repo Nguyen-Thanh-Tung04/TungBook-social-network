@@ -5,11 +5,13 @@ import Login from './Component/Client/Auth/login';
 import Home from './Component/Client/Home';
 import Regester from './Component/Client/Auth/Regester';
 import Profile from './Component/Client/Auth/Profile';
-import StoryDetail from './Component/Client/StoryDetail';
+import StoryDetail from './Component/Client/Stories/StoryDetail';
+import StoryUp from './Component/Client/Stories/StoryUp';
 import Chat from './Component/Client/Chat';
 import Friends from './Component/Client/Friends';
 import Groups from './Component/Client/Groups'; 
 import GroupsDetail from './Component/Client/GroupsDetail';
+import ForgotPassword from './Component/Client/Auth/ForgotPassword';
 
 
 const App = () => {
@@ -29,6 +31,8 @@ const App = () => {
           <Route path="friends" element={<Friends />} />
           <Route path="groups" element={<Groups />} />
           <Route path="groups/:id" element={<GroupsDetail />} />
+          <Route path="forgot-password" element={<ForgotPassword />} /> 
+          <Route path='story-up' element={<StoryUp />} />
         </Route>
       </Routes>
     </Router>

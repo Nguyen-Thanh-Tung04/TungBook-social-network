@@ -1,8 +1,42 @@
 // Import các thư viện cần thiết
-import React from "react";
+import React, { useState } from "react";
 import { FaVideo, FaPhotoVideo, FaSmile } from "react-icons/fa"; // Import các icon cần dùng
 
 const Home = () => {
+    const [selectedImage, setSelectedImage] = useState(null);
+
+    const handleImageClick = (image) => {
+        setSelectedImage(image); // Đặt ảnh được click vào state
+    };
+
+    const closeImageViewer = () => {
+        setSelectedImage(null); // Đóng chế độ xem ảnh
+    };
+    const [showLikesModal, setShowLikesModal] = useState(false);
+
+
+    // Bình luận 
+    const [showCommentsModal, setShowCommentsModal] = useState(false);
+
+    // Đăng bài 
+    const [isModalOpen, setIsModalOpen] = useState(false);
+    const [postContent, setPostContent] = useState("");  // Dùng để lưu nội dung bài viết
+    const [file, setFile] = useState(null);  // Dùng để lưu file tải lên
+
+
+    const toggleModal = () => {
+        setIsModalOpen(!isModalOpen);
+    };
+
+    const handlePostChange = (e) => {
+        setPostContent(e.target.value);
+    };
+
+    const handleFileChange = (e) => {
+        setFile(e.target.files[0]);  // Lưu file được chọn
+    };
+
+
     const friendsStories = [
         {
             name: "Nguyễn Thanh Tùng ",
@@ -33,11 +67,72 @@ const Home = () => {
                             alt="User Avatar"
                             className="w-10 h-10 rounded-full mr-4"
                         />
-                        <input
-                            type="text"
-                            placeholder="Tùng ơi, bạn đang nghĩ gì thế?"
-                            className="flex-1 p-2 bg-gray-200 text-gray-300 rounded-lg focus:outline-none"
-                        />
+                        <div className="relative w-full ">
+                            {/* Input mở modal */}
+                            <input
+                                type="text"
+                                placeholder="Tùng ơi, bạn đang nghĩ gì thế?"
+                                className="flex-1 p-2 bg-gray-200 w-full text-gray-300 rounded-lg  focus:outline-none"
+                                onClick={toggleModal}
+                            />
+
+                            {/* Modal */}
+                            {isModalOpen && (
+                                <div
+                                    className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50"
+                                    onClick={toggleModal}
+                                >
+                                    <div
+                                        className="bg-white rounded-lg p-6  w-3/6 h-3/6 "
+                                        onClick={(e) => e.stopPropagation()}
+                                    >
+                                        <div className="flex items-center mb-4">
+                                            <img
+                                                src="https://randomuser.me/api/portraits/men/1.jpg"
+                                                alt="User"
+                                                className="w-10 h-10 rounded-full"
+                                            />
+                                            <div className="ml-3">
+                                                <h4 className="text-sm font-medium text-gray-800">
+                                                    Nguyễn Thanh Tùng
+                                                </h4>
+                                                
+                                            </div>
+                                        </div>
+                                        <h2 className="text-lg font-semibold mb-4">Tạo bài viết</h2>
+                                        {/* Phần nhập nội dung bài viết */}
+                                        <textarea
+                                            value={postContent}
+                                            onChange={handlePostChange}
+                                            placeholder="hôm nay đẹp trời"
+                                            className="w-full p-2 mb-4 bg-gray-100 rounded-md h-24"
+                                        />
+                                        {/* Thêm ảnh/video */}
+                                        <div className="mb-4 border border-gray-300 rounded-lg p-2 text-center  text-gray-500">
+                                            <input
+                                                type="file"
+                                                accept="image/*, video/*"
+                                                onChange={handleFileChange}
+                                                className="w-full opacity-0 absolute cursor-pointer"
+                                            />
+                                            {file ? (
+                                                <p>{file.name}</p>
+                                            ) : (
+                                                <span>Thêm ảnh/video hoặc kéo và thả</span>
+                                            )}
+                                        </div>
+                                        <div className="flex items-center justify-between">
+                                            <button
+                                                className="bg-blue-500 w-full text-white px-4 py-2 rounded-md"
+                                                onClick={toggleModal}
+                                            >
+                                                Đăng
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
+                        </div>
                     </div>
                     <div className="flex justify-start space-x-4 mt-4">
                         <button className="flex items-center text-red-500">
@@ -62,6 +157,7 @@ const Home = () => {
                 {/* Danh sách Stories */}
                 <div className="flex space-x-4 overflow-x-auto">
                     {/* Tạo tin */}
+                    <a href="/story-up">
                     <div className="relative w-24 h-40 bg-gray-300 rounded-lg shadow-md flex flex-col items-center justify-center">
                         <img
                             src="https://randomuser.me/api/portraits/men/4.jpg"
@@ -75,6 +171,7 @@ const Home = () => {
                             +
                         </button>
                     </div>
+                    </a>
 
                     {/* Stories của bạn bè */}
                     {friendsStories.map((friend, index) => (
@@ -130,21 +227,204 @@ const Home = () => {
                             <img
                                 src="https://phunugioi.com/wp-content/uploads/2020/04/nhung-hinh-anh-dep-ve-que-huong-dat-nuoc-con-nguoi-viet-nam.jpg"
                                 alt="Post"
-                                className="w-full h-auto object-cover"
+                                className="w-full h-auto object-cover cursor-pointer"
+                                onClick={() =>
+                                    handleImageClick(
+                                        "https://phunugioi.com/wp-content/uploads/2020/04/nhung-hinh-anh-dep-ve-que-huong-dat-nuoc-con-nguoi-viet-nam.jpg"
+                                    )
+                                }
                             />
                         </div>
 
+                        {/* Modal hiển thị ảnh phóng to */}
+                        {selectedImage && (
+                            <div
+                                className="fixed inset-0 bg-black bg-opacity-75 flex justify-center items-center z-50"
+                                onClick={closeImageViewer}
+                            >
+                                <div className="relative w-4/5 h-4/5">
+                                    <img
+                                        src={selectedImage}
+                                        alt="Phóng to"
+                                        className="w-full h-full object-contain rounded-lg"
+                                    />
+                                    <button
+                                        className="absolute top-4 right-4 bg-white p-2 rounded-full text-black"
+                                        onClick={closeImageViewer}
+                                    >
+                                        ✕
+                                    </button>
+                                </div>
+                            </div>
+                        )}
                         {/* Like, Comment, Share */}
                         <div className="flex justify-between items-center text-gray-600 text-sm mt-4">
                             <div className="flex space-x-2">
-                                <button className="flex items-center space-x-1">
+                                {/* Button Like */}
+                                <button
+                                    className="flex items-center space-x-1"
+                                    onClick={() => setShowLikesModal(true)} // Hiển thị modal
+                                >
                                     <span>👍</span>
                                     <span>140 Likes</span>
                                 </button>
-                                <button className="flex items-center space-x-1">
+
+                                {/* Modal danh sách người thích */}
+                                {showLikesModal && (
+                                    <div
+                                        className="fixed inset-0 bg-black bg-opacity-75 flex justify-center items-center z-50"
+                                        onClick={() => setShowLikesModal(false)} // Đóng modal khi click vào nền
+                                    >
+                                        <div
+                                            className="bg-white w-full max-w-sm rounded-lg shadow-lg overflow-hidden"
+                                            onClick={(e) => e.stopPropagation()} // Ngăn không đóng modal khi click vào nội dung
+                                        >
+                                            {/* Header */}
+                                            <div className="flex justify-between items-center p-4 border-b">
+                                                <h2 className="text-lg font-semibold">140 người đã thích</h2>
+                                                <button
+                                                    className="text-gray-500 hover:text-gray-800"
+                                                    onClick={() => setShowLikesModal(false)} // Nút đóng modal
+                                                >
+                                                    ✕
+                                                </button>
+                                            </div>
+
+                                            {/* Danh sách người đã thích */}
+                                            <div className="p-4 space-y-4">
+                                                {[
+                                                    { name: "Trần Minh Điện", mutualFriends: "1 bạn chung" },
+                                                    { name: "Bùi Thơm", mutualFriends: "1 bạn chung" },
+                                                    { name: "Đào Huyền", mutualFriends: null },
+                                                ].map((user, index) => (
+                                                    <div
+                                                        key={index}
+                                                        className="flex justify-between items-center"
+                                                    >
+                                                        <div className="flex items-center space-x-3">
+                                                            <img
+                                                                src={`https://randomuser.me/api/portraits/${index % 2 === 0 ? "men" : "women"
+                                                                    }/${index + 10}.jpg`}
+                                                                alt="User Avatar"
+                                                                className="w-8 h-8 rounded-full"
+                                                            />
+                                                            <div>
+                                                                <h5 className="text-sm font-medium text-gray-800">
+                                                                    {user.name}
+                                                                </h5>
+                                                                {user.mutualFriends && (
+                                                                    <p className="text-xs text-gray-600">
+                                                                        {user.mutualFriends}
+                                                                    </p>
+                                                                )}
+                                                            </div>
+                                                        </div>
+                                                        <button className="bg-blue-500 text-white px-3 py-1 rounded-full text-xs">
+                                                            Thêm bạn bè
+                                                        </button>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    </div>
+                                )}
+
+                                {/* Button "20 Comments" */}
+                                <button
+                                    className="flex items-center space-x-1"
+                                    onClick={() => setShowCommentsModal(true)}
+                                >
                                     <span>💬</span>
                                     <span>20 Comments</span>
                                 </button>
+
+                                {/* Modal hiển thị chi tiết bài viết và bình luận */}
+                                {showCommentsModal && (
+                                    <div
+                                        className="fixed inset-0 bg-black bg-opacity-75 flex justify-center items-center z-50"
+                                        onClick={() => setShowCommentsModal(false)} // Đóng modal khi click vào nền đen
+                                    >
+                                        <div
+                                            className="bg-white w-full max-w-2xl max-h-screen rounded-lg shadow-lg overflow-y-auto"
+                                            onClick={(e) => e.stopPropagation()} // Ngăn không đóng modal khi click vào nội dung
+                                        >
+                                            {/* Header */}
+                                            <div className="flex justify-between items-center p-4 border-b">
+                                                <h2 className="text-lg font-semibold">Bài viết của Anna Sthesia</h2>
+                                                <button
+                                                    className="text-gray-500 hover:text-gray-800"
+                                                    onClick={() => setShowCommentsModal(false)}
+                                                >
+                                                    ✕
+                                                </button>
+                                            </div>
+
+                                            {/* Nội dung */}
+                                            <div className="p-4">
+                                                <div className="grid grid-cols-3 gap-2">
+                                                    <img
+                                                        src="https://s3.cloud.cmctelecom.vn/tinhte1/2017/12/4205775_C.jpg"
+                                                        alt="Main Image"
+                                                        className="col-span-3 w-full h-auto rounded-lg"
+                                                    />
+                                                </div>
+
+                                                {/* Bình luận */}
+                                                <div className="mt-4 space-y-4">
+                                                    <div className="flex items-start space-x-3">
+                                                        <img
+                                                            src="https://randomuser.me/api/portraits/men/2.jpg"
+                                                            alt="User"
+                                                            className="w-8 h-8 rounded-full"
+                                                        />
+                                                        <div>
+                                                            <h5 className="text-sm font-medium text-gray-800">Phi Hùng</h5>
+                                                            <p className="text-xs text-gray-600">Còn phòng không ạ?</p>
+                                                            <div className="text-xs text-gray-500 flex space-x-2 mt-1">
+                                                                <button>Like</button>
+                                                                <button>Reply</button>
+                                                                <span>1 phút</span>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+
+                                                    <div className="flex items-start space-x-3">
+                                                        <img
+                                                            src="https://randomuser.me/api/portraits/men/3.jpg"
+                                                            alt="User"
+                                                            className="w-8 h-8 rounded-full"
+                                                        />
+                                                        <div>
+                                                            <h5 className="text-sm font-medium text-gray-800">Phi Hùng</h5>
+                                                            <p className="text-xs text-gray-600">Còn phòng không ạ?</p>
+                                                            <div className="text-xs text-gray-500 flex space-x-2 mt-1">
+                                                                <button>Like</button>
+                                                                <button>Reply</button>
+                                                                <span>1 phút</span>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            {/* Add Comment */}
+                                            <div className="flex items-center space-x-3 p-4 border-t">
+                                                <img
+                                                    src="https://randomuser.me/api/portraits/women/2.jpg"
+                                                    alt="User"
+                                                    className="w-8 h-8 rounded-full"
+                                                />
+                                                <input
+                                                    type="text"
+                                                    placeholder="Bình luận dưới tên Nguyễn Thanh Tùng"
+                                                    className="flex-1 bg-gray-100 p-2 rounded-lg text-sm"
+                                                />
+                                                <button className="text-gray-500">📎</button>
+                                                <button className="text-gray-500">😊</button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                )}
                             </div>
                             <button className="flex items-center space-x-1">
                                 <span>🔗</span>
@@ -256,7 +536,12 @@ const Home = () => {
                             <img
                                 src="https://s3.cloud.cmctelecom.vn/tinhte1/2017/12/4205775_C.jpg"
                                 alt="Left Image"
-                                className="w-full h-full object-cover rounded-lg"
+                                className="w-full h-full object-cover rounded-lg cursor-pointer"
+                                onClick={() =>
+                                    handleImageClick(
+                                        "https://s3.cloud.cmctelecom.vn/tinhte1/2017/12/4205775_C.jpg"
+                                    )
+                                }
                             />
                         </div>
 
@@ -265,10 +550,37 @@ const Home = () => {
                             <img
                                 src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQOX0ch2n86x0AvHIwRgRABjbyKFDSZCnBpUbseGs2MQr0XDHgthzYVb-iqsfDU0eNil70&usqp=CAU"
                                 alt="Right Image"
-                                className="w-full h-full object-cover rounded-lg"
+                                className="w-full h-full object-cover rounded-lg cursor-pointer"
+                                onClick={() =>
+                                    handleImageClick(
+                                        "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQOX0ch2n86x0AvHIwRgRABjbyKFDSZCnBpUbseGs2MQr0XDHgthzYVb-iqsfDU0eNil70&usqp=CAU"
+                                    )
+                                }
                             />
                         </div>
                     </div>
+
+                    {/* Modal hiển thị ảnh phóng to */}
+                    {selectedImage && (
+                        <div
+                            className="fixed inset-0 bg-gray-800 bg-opacity-75 flex justify-center items-center z-50"
+                            onClick={closeImageViewer}
+                        >
+                            <div className="relative w-4/5 h-4/5">
+                                <img
+                                    src={selectedImage}
+                                    alt="Phóng to"
+                                    className="w-full h-full object-contain rounded-lg"
+                                />
+                                <button
+                                    className="absolute top-4 right-4 bg-white p-2 rounded-full text-black"
+                                    onClick={closeImageViewer}
+                                >
+                                    ✕
+                                </button>
+                            </div>
+                        </div>
+                    )}
 
                     {/* Like, Comment, Share */}
                     <div className="flex justify-between items-center text-gray-600 text-sm mb-4">
@@ -392,7 +704,12 @@ const Home = () => {
                             <img
                                 src="https://s3.cloud.cmctelecom.vn/tinhte1/2017/12/4205775_C.jpg"
                                 alt="Large Image"
-                                className="w-full h-full object-cover rounded-lg"
+                                className="w-full h-full object-cover rounded-lg cursor-pointer"
+                                onClick={() =>
+                                    handleImageClick(
+                                        "https://s3.cloud.cmctelecom.vn/tinhte1/2017/12/4205775_C.jpg"
+                                    )
+                                }
                             />
                         </div>
 
@@ -401,15 +718,48 @@ const Home = () => {
                             <img
                                 src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQOX0ch2n86x0AvHIwRgRABjbyKFDSZCnBpUbseGs2MQr0XDHgthzYVb-iqsfDU0eNil70&usqp=CAU"
                                 alt="Small Image 1"
-                                className="w-full h-full object-cover rounded-lg"
+                                className="w-full h-full object-cover rounded-lg cursor-pointer"
+                                onClick={() =>
+                                    handleImageClick(
+                                        "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQOX0ch2n86x0AvHIwRgRABjbyKFDSZCnBpUbseGs2MQr0XDHgthzYVb-iqsfDU0eNil70&usqp=CAU"
+                                    )
+                                }
                             />
                             <img
                                 src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQTo0RlA5zJ3VvRDHgKsL1y2hyckhuebXhePOoLWF8fiN8hsBnbgwWaCUsMnbJNxLisZBQ&usqp=CAU"
                                 alt="Small Image 2"
-                                className="w-full h-full object-cover rounded-lg"
+                                className="w-full h-full object-cover rounded-lg cursor-pointer"
+                                onClick={() =>
+                                    handleImageClick(
+                                        "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQTo0RlA5zJ3VvRDHgKsL1y2hyckhuebXhePOoLWF8fiN8hsBnbgwWaCUsMnbJNxLisZBQ&usqp=CAU"
+                                    )
+                                }
                             />
                         </div>
                     </div>
+
+                    {/* Modal hiển thị ảnh phóng to */}
+                    {selectedImage && (
+                        <div
+                            className="fixed inset-0 bg-black bg-opacity-75 flex justify-center items-center z-50"
+                            onClick={closeImageViewer}
+                        >
+                            <div className="relative w-4/5 h-4/5">
+                                <img
+                                    src={selectedImage}
+                                    alt="Phóng to"
+                                    className="w-full h-full object-contain rounded-lg"
+                                />
+                                <button
+                                    className="absolute top-4 right-4 bg-white p-2 rounded-full text-black"
+                                    onClick={closeImageViewer}
+                                >
+                                    ✕
+                                </button>
+                            </div>
+                        </div>
+                    )}
+
 
                     {/* Like, Comment, Share */}
                     <div className="flex justify-between items-center text-gray-600 text-sm mb-4">

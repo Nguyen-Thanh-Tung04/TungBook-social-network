@@ -78,7 +78,8 @@ const Register = () => {
     };
 
     return (
-        <div className="max-w-md mx-auto mt-10 p-6 border border-gray-300 rounded-lg shadow-lg bg-white" style={{ width: "50vw",height: "60vh" }}>
+       <div>
+         <div className="max-w-md mx-auto mt-10 p-6 border border-gray-300 rounded-lg shadow-lg bg-white" style={{ width: "50vw"    }}>
             <h2 className="text-2xl font-bold text-center text-gray-800 mb-6">
                 Đăng ký
             </h2>
@@ -154,12 +155,18 @@ const Register = () => {
 
                 <button
                     type="submit"
-                    className="w-full bg-blue-500 text-white py-2 px-4 rounded-lg hover:bg-blue-600 transition duration-200"
+                    className="w-full bg-green-500 text-white py-2 px-4 rounded-lg hover:bg-green-600 transition duration-200"
                 >
                     Đăng ký
                 </button>
+                <div className="mt-4 text-center">
+                    <a href="login" className="text-blue-500 text-sm">
+                        Bạn đã có tài khoản rồi ư?
+                    </a>
+                </div>
             </form>
         </div>
+       </div>
     );
 };
 

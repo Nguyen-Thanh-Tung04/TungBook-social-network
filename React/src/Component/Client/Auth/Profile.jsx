@@ -11,7 +11,7 @@ function ProfilePage() {
     const [activeTab, setActiveTab] = useState("first");
 
     return (
-        <div className=" bg-gray-100 min-h-screen " style={{ width: "50vw" }}>
+        <div className=" bg-gray-100 min-h-fit ">
             {/* Header */}
             <div className="bg-gradient-to-r from-blue-500 to-teal-400 p-6 flex items-center justify-between">
                 <div className="flex items-center">
@@ -301,7 +301,7 @@ function ProfilePage() {
                 )}
                 {activeTab === "second" && (
                     <div>
-                        <div className="min-h-screen bg-gray-100 text-gray-600 flex">
+                        <div className="min-h-screen bg-gray-100 text-gray-600 flex max-w-[1120px]">
                             {/* Sidebar */}
                             <div className="w-1/4 bg-white p-4 shadow-md">
                                 <ul className="space-y-4">
@@ -449,7 +449,8 @@ function ProfilePage() {
                     </div>
                 )}
                 {activeTab === "third" && (
-                    <div className="min-h-screen bg-gray-100 p-6">
+                   <div>
+                     <div className="min-h-screen bg-gray-100 p-6 " style={{ width: "1120px" }} >
                         <div className="bg-white p-6 rounded shadow-md">
                             <h2 className="text-2xl font-semibold mb-4">
                                 Friends
@@ -534,10 +535,12 @@ function ProfilePage() {
                             </div>
                         </div>
                     </div>
+                   </div>
                 )}
 
                 {activeTab === "forth" && (
-                    <div className="min-h-screen bg-gray-100 p-6">
+                    <div>
+                        <div className="min-h-screen bg-gray-100 p-6 max-w-[1120px]" style={{ width: "1120px" }}>
                         <div className="bg-white p-6 rounded shadow-md">
                             <h2 className="text-2xl font-semibold mb-4">
                                 Photos
@@ -573,6 +576,7 @@ function ProfilePage() {
                                 ))}
                             </div>
                         </div>
+                    </div>
                     </div>
                 )}
             </div>

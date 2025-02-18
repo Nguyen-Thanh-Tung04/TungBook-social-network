@@ -7,13 +7,13 @@ const Login = () => {
     const [password, setPassword] = useState("");
     const [error, setError] = useState("");
     const [message, setMessage] = useState("");
-    const navigate = useNavigate(); // Dùng để chuyển hướng
+    const navigate = useNavigate();
 
     // Kiểm tra nếu đã đăng nhập
     useEffect(() => {
         const token = localStorage.getItem("authToken");
         if (token) {
-            navigate("/home"); // Nếu đã đăng nhập, chuyển hướng về trang home
+            navigate("/home");
         }
     }, [navigate]);
 
@@ -46,73 +46,87 @@ const Login = () => {
             }
         } catch (err) {
             if (err.response) {
-                // Nếu server trả về lỗi
                 if (err.response.status === 401) {
                     setError("Email hoặc mật khẩu không đúng.");
                 } else {
                     setError(
                         err.response.data.message ||
-                            "Đã xảy ra lỗi. Vui lòng thử lại."
+                        "Đã xảy ra lỗi. Vui lòng thử lại."
                     );
                 }
             } else {
-                // Nếu lỗi không phải từ server (ví dụ lỗi kết nối)
                 setError("Không thể kết nối đến máy chủ. Vui lòng thử lại.");
             }
         }
     };
 
     return (
-        <div className="max-w-md mx-auto mt-10 p-6 border border-gray-300 rounded-lg shadow-lg bg-white" style={{ width: "60vw", height: "40vh" }}>
-            <h2 className="text-2xl font-bold text-center text-gray-800 mb-6">
-                Đăng Nhập
-            </h2>
-            <form onSubmit={handleLogin}>
-                <div className="mb-4">
-                    <label
-                        htmlFor="email"
-                        className="block text-gray-700 font-medium mb-2"
-                    >
-                        Email:
-                    </label>
-                    <input
-                        type="email"
-                        id="email"
-                        value={email}
-                        onChange={(e) => setEmail(e.target.value)}
-                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    />
+        <div className="flex items-center justify-center " style={{ width: "1280px" }}>
+            {/* Facebook Logo và mô tả */}
+            <div className="flex items-center justify-center w-1/2">
+                <div>
+                    <h1 className="text-6xl font-bold text-blue-600 mb-4">
+                        Tungbook
+                    </h1>
+                    <p className="text-xl text-gray-700">
+                        Tungbook giúp bạn kết nối và chia sẻ với mọi người trong
+                        cuộc sống của bạn.
+                    </p>
                 </div>
+            </div>
 
-                <div className="mb-4">
-                    <label
-                        htmlFor="password"
-                        className="block text-gray-700 font-medium mb-2"
+            {/* Form đăng nhập */}
+            <div className="w-1/3 bg-white p-6 rounded-lg shadow-md">
+                <form onSubmit={handleLogin}>
+                    <div className="mb-4">
+                        <input
+                            type="email"
+                            placeholder="Email hoặc số điện thoại"
+                            value={email}
+                            onChange={(e) => setEmail(e.target.value)}
+                            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        />
+                    </div>
+                    <div className="mb-4">
+                        <input
+                            type="password"
+                            placeholder="Mật khẩu"
+                            value={password}
+                            onChange={(e) => setPassword(e.target.value)}
+                            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        />
+                    </div>
+
+                    {error && (
+                        <p className="text-red-500 text-sm mb-4">{error}</p>
+                    )}
+                    {message && (
+                        <p className="text-green-500 text-sm mb-4">{message}</p>
+                    )}
+
+                    <button
+                        type="submit"
+                        className="w-full bg-blue-500 text-white py-2 px-4 rounded-lg hover:bg-blue-600 transition duration-200 font-bold text-lg"
                     >
-                        Mật khẩu:
-                    </label>
-                    <input
-                        type="password"
-                        id="password"
-                        value={password}
-                        onChange={(e) => setPassword(e.target.value)}
-                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    />
+                        Đăng nhập
+                    </button>
+                </form>
+                <div className="mt-4 text-center">
+                    <a href="forgot-password" className="text-blue-500 text-sm">
+                        Quên mật khẩu?
+                    </a>
                 </div>
+                <hr className="my-4" />
+                <div className="text-center">
+                    <a
+                        href="/regester"
+                        className="w-full bg-green-500 text-white py-2 px-4 rounded-lg hover:bg-green-600 transition duration-200 font-bold text-lg text-center block"
+                    >
+                        Tạo tài khoản mới
+                    </a>
 
-                {error && <p className="text-red-500 text-sm mb-4">{error}</p>}
-                {message && (
-                    <p className="text-green-500 text-sm mb-4">{message}</p>
-                )}
-
-                <button
-                    type="submit"
-                    className="w-full bg-blue-500 text-white py-2 px-4 rounded-lg hover:bg-blue-600 transition duration-200"
-                >
-                    Đăng Nhập
-                </button>
-            </form>
-            <a href=""  className=" text-red-600">Quên mật khẩu</a>
+                </div>
+            </div>
         </div>
     );
 };
