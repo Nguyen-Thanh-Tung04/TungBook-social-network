@@ -12,6 +12,7 @@ import Friends from './Component/Client/Friends';
 import Groups from './Component/Client/Groups'; 
 import GroupsDetail from './Component/Client/GroupsDetail';
 import ForgotPassword from './Component/Client/Auth/ForgotPassword';
+import Weather from './Component/Client/Weather';
 
 
 const App = () => {
@@ -33,6 +34,7 @@ const App = () => {
           <Route path="groups/:id" element={<GroupsDetail />} />
           <Route path="forgot-password" element={<ForgotPassword />} /> 
           <Route path='story-up' element={<StoryUp />} />
+          <Route path='weather' element={<Weather />} /> 
         </Route>
       </Routes>
     </Router>

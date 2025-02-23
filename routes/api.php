@@ -5,6 +5,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Admin\Auth\RoleController;
 use App\Http\Controllers\Admin\Auth\UserController;
 use App\Http\Controllers\Client\AuthController;
+use App\Http\Controllers\Client\PostController;
 
 
 /*
@@ -30,3 +31,6 @@ Route::resource('users', UserController::class);
 Route::post('register', [AuthController::class, 'register']);
 Route::post('login', [AuthController::class, 'login']);
 Route::middleware('auth:sanctum')->post('logout', [AuthController::class, 'logout']);
+
+// Route::apiResource('posts', PostController::class);
+Route::post('/posts', [PostController::class, 'store']);  // Không có auth:sanctum

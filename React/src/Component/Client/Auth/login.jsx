@@ -15,7 +15,7 @@ const Login = () => {
         if (token) {
             navigate("/home");
         }
-    }, [navigate]);
+    }, [navigate]); 
 
     const handleLogin = async (e) => {
         e.preventDefault();

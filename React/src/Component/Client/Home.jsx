@@ -1,6 +1,7 @@
 // Import các thư viện cần thiết
 import React, { useState } from "react";
 import { FaVideo, FaPhotoVideo, FaSmile } from "react-icons/fa"; // Import các icon cần dùng
+import axios from "axios";  
 
 const Home = () => {
     const [selectedImage, setSelectedImage] = useState(null);
@@ -35,6 +36,36 @@ const Home = () => {
     const handleFileChange = (e) => {
         setFile(e.target.files[0]);  // Lưu file được chọn
     };
+    
+    const handlePostSubmit = async (e) => {
+        e.preventDefault(); // Ngăn chặn reload trang
+    
+        const formData = new FormData();
+        formData.append("user_id", 4); // Thay bằng user_id thật
+        formData.append("type_id", 1); // Thay bằng type_id thật
+        formData.append("content", postContent);
+        if (file) {
+            formData.append("file", file);
+        }
+        
+    
+        console.log("Sending data:", Object.fromEntries(formData.entries())); // Kiểm tra dữ liệu trước khi gửi
+    
+        try {
+            
+            const response = await axios.post("http://127.0.0.1:8000/api/posts", formData, {
+                headers: {
+                    "Content-Type": "multipart/form-data",
+                },
+            });
+    
+            console.log("Response from server:", response.data); // Log kết quả
+            toggleModal(); // Đóng modal nếu thành công
+        } catch (error) {
+            console.error("Error:", error.response ? error.response.data : error);
+        }
+    };
+    
 
 
     const friendsStories = [
@@ -68,71 +99,78 @@ const Home = () => {
                             className="w-10 h-10 rounded-full mr-4"
                         />
                         <div className="relative w-full ">
-                            {/* Input mở modal */}
-                            <input
-                                type="text"
-                                placeholder="Tùng ơi, bạn đang nghĩ gì thế?"
-                                className="flex-1 p-2 bg-gray-200 w-full text-gray-300 rounded-lg  focus:outline-none"
-                                onClick={toggleModal}
-                            />
+    {/* Input mở modal */}
+    <input
+        type="text"
+        placeholder="Tùng ơi, bạn đang nghĩ gì thế?"
+        className="flex-1 p-2 bg-gray-200 w-full text-gray-300 rounded-lg focus:outline-none"
+        onClick={toggleModal}
+    />
 
-                            {/* Modal */}
-                            {isModalOpen && (
-                                <div
-                                    className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50"
-                                    onClick={toggleModal}
-                                >
-                                    <div
-                                        className="bg-white rounded-lg p-6  w-3/6 h-3/6 "
-                                        onClick={(e) => e.stopPropagation()}
-                                    >
-                                        <div className="flex items-center mb-4">
-                                            <img
-                                                src="https://randomuser.me/api/portraits/men/1.jpg"
-                                                alt="User"
-                                                className="w-10 h-10 rounded-full"
-                                            />
-                                            <div className="ml-3">
-                                                <h4 className="text-sm font-medium text-gray-800">
-                                                    Nguyễn Thanh Tùng
-                                                </h4>
-                                                
-                                            </div>
-                                        </div>
-                                        <h2 className="text-lg font-semibold mb-4">Tạo bài viết</h2>
-                                        {/* Phần nhập nội dung bài viết */}
-                                        <textarea
-                                            value={postContent}
-                                            onChange={handlePostChange}
-                                            placeholder="hôm nay đẹp trời"
-                                            className="w-full p-2 mb-4 bg-gray-100 rounded-md h-24"
-                                        />
-                                        {/* Thêm ảnh/video */}
-                                        <div className="mb-4 border border-gray-300 rounded-lg p-2 text-center  text-gray-500">
-                                            <input
-                                                type="file"
-                                                accept="image/*, video/*"
-                                                onChange={handleFileChange}
-                                                className="w-full opacity-0 absolute cursor-pointer"
-                                            />
-                                            {file ? (
-                                                <p>{file.name}</p>
-                                            ) : (
-                                                <span>Thêm ảnh/video hoặc kéo và thả</span>
-                                            )}
-                                        </div>
-                                        <div className="flex items-center justify-between">
-                                            <button
-                                                className="bg-blue-500 w-full text-white px-4 py-2 rounded-md"
-                                                onClick={toggleModal}
-                                            >
-                                                Đăng
-                                            </button>
-                                        </div>
-                                    </div>
-                                </div>
-                            )}
-                        </div>
+    {/* Modal */}
+    {isModalOpen && (
+        <div
+            className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50"
+            onClick={toggleModal}
+        >
+            <div
+                className="bg-white rounded-lg p-6 w-3/6 h-3/6"
+                onClick={(e) => e.stopPropagation()}
+            >
+                <div className="flex items-center mb-4">
+                    <img
+                        src="https://randomuser.me/api/portraits/men/1.jpg"
+                        alt="User"
+                        className="w-10 h-10 rounded-full"
+                    />
+                    <div className="ml-3">
+                        <h4 className="text-sm font-medium text-gray-800">
+                            Nguyễn Thanh Tùng
+                        </h4>
+                    </div>
+                </div>
+                <h2 className="text-lg font-semibold mb-4">Tạo bài viết</h2>
+
+                {/* Form để đăng bài */}
+                <form onSubmit={handlePostSubmit}>
+                    {/* Phần nhập nội dung bài viết */}
+                    <textarea
+                        value={postContent}
+                        onChange={handlePostChange}
+                        placeholder="hôm nay đẹp trời"
+                        className="w-full p-2 mb-4 bg-gray-100 rounded-md h-24"
+                    />
+
+                    {/* Thêm ảnh/video */}
+                    <div className="mb-4 border border-gray-300 rounded-lg p-2 text-center text-gray-500">
+                        <input
+                            type="file"
+                            accept="image/*, video/*"
+                            onChange={handleFileChange}
+                            className="w-full opacity-0 absolute cursor-pointer"
+                        />
+                        {file ? (
+                            <p>{file.name}</p>
+                        ) : (
+                            <span>Thêm ảnh/video hoặc kéo và thả</span>
+                        )}
+                    </div>
+
+                    {/* Nút đăng bài */}
+                    <div className="flex items-center justify-between">
+                        <button
+                            type="submit"  // Đảm bảo nút là button submit
+                            className="bg-blue-500 w-full text-white px-4 py-2 rounded-md"
+                        >
+                            Đăng
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    )}
+</div>
+
                     </div>
                     <div className="flex justify-start space-x-4 mt-4">
                         <button className="flex items-center text-red-500">
