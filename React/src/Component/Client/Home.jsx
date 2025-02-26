@@ -38,33 +38,36 @@ const Home = () => {
     };
     
     const handlePostSubmit = async (e) => {
-        e.preventDefault(); // Ngăn chặn reload trang
+        e.preventDefault();
     
         const formData = new FormData();
-        formData.append("user_id", 4); // Thay bằng user_id thật
-        formData.append("type_id", 1); // Thay bằng type_id thật
+        formData.append("user_id", 3);
+        formData.append("type_id", 1);
         formData.append("content", postContent);
         if (file) {
             formData.append("file", file);
         }
-        
     
-        console.log("Sending data:", Object.fromEntries(formData.entries())); // Kiểm tra dữ liệu trước khi gửi
+        // ✅ Kiểm tra xem file có trong formData không
+        for (let pair of formData.entries()) {
+            console.log(pair[0], pair[1]);
+        }
     
         try {
-            
             const response = await axios.post("http://127.0.0.1:8000/api/posts", formData, {
                 headers: {
                     "Content-Type": "multipart/form-data",
                 },
             });
     
-            console.log("Response from server:", response.data); // Log kết quả
-            toggleModal(); // Đóng modal nếu thành công
+            console.log("Response từ server:", response.data);
+            toggleModal();
         } catch (error) {
-            console.error("Error:", error.response ? error.response.data : error);
+            console.error("Lỗi khi gửi request:", error.response ? error.response.data : error);
         }
     };
+    
+    
     
 
 
