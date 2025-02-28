@@ -1,7 +1,7 @@
 // Import các thư viện cần thiết
 import React, { useState } from "react";
 import { FaVideo, FaPhotoVideo, FaSmile } from "react-icons/fa"; // Import các icon cần dùng
-import axios from "axios";  
+import axios from "axios";
 
 const Home = () => {
     const [selectedImage, setSelectedImage] = useState(null);
@@ -15,15 +15,13 @@ const Home = () => {
     };
     const [showLikesModal, setShowLikesModal] = useState(false);
 
-
-    // Bình luận 
+    // Bình luận
     const [showCommentsModal, setShowCommentsModal] = useState(false);
 
-    // Đăng bài 
+    // Đăng bài
     const [isModalOpen, setIsModalOpen] = useState(false);
-    const [postContent, setPostContent] = useState("");  // Dùng để lưu nội dung bài viết
-    const [file, setFile] = useState(null);  // Dùng để lưu file tải lên
-
+    const [postContent, setPostContent] = useState(""); // Dùng để lưu nội dung bài viết
+    const [file, setFile] = useState(null); // Dùng để lưu file tải lên
 
     const toggleModal = () => {
         setIsModalOpen(!isModalOpen);
@@ -33,43 +31,51 @@ const Home = () => {
         setPostContent(e.target.value);
     };
 
+    const [files, setFiles] = useState([]); // Thay vì 1 file, lưu danh sách file
+
     const handleFileChange = (e) => {
-        setFile(e.target.files[0]);  // Lưu file được chọn
+        const selectedFiles = Array.from(e.target.files).filter(
+            (file) => file instanceof File
+        );
+        setFiles(selectedFiles); // Lưu file trực tiếp
     };
-    
+    const handleRemoveImage = (index) => {
+        setFiles((prevFiles) => prevFiles.filter((_, i) => i !== index));
+    };
+
     const handlePostSubmit = async (e) => {
         e.preventDefault();
-    
+
         const formData = new FormData();
-        formData.append("user_id", 3);
+        formData.append("user_id", 1);
         formData.append("type_id", 1);
         formData.append("content", postContent);
-        if (file) {
-            formData.append("file", file);
-        }
-    
-        // ✅ Kiểm tra xem file có trong formData không
-        for (let pair of formData.entries()) {
-            console.log(pair[0], pair[1]);
-        }
-    
+
+        // Lặp qua danh sách file và thêm vào formData
+        files.forEach((file, index) => {
+            formData.append(`files[${index}]`, file);
+        });
+
         try {
-            const response = await axios.post("http://127.0.0.1:8000/api/posts", formData, {
-                headers: {
-                    "Content-Type": "multipart/form-data",
-                },
-            });
-    
+            const response = await axios.post(
+                "http://127.0.0.1:8000/api/posts",
+                formData,
+                {
+                    headers: {
+                        "Content-Type": "multipart/form-data",
+                    },
+                }
+            );
+
             console.log("Response từ server:", response.data);
             toggleModal();
         } catch (error) {
-            console.error("Lỗi khi gửi request:", error.response ? error.response.data : error);
+            console.error(
+                "Lỗi khi gửi request:",
+                error.response ? error.response.data : error
+            );
         }
     };
-    
-    
-    
-
 
     const friendsStories = [
         {
@@ -102,78 +108,219 @@ const Home = () => {
                             className="w-10 h-10 rounded-full mr-4"
                         />
                         <div className="relative w-full ">
-    {/* Input mở modal */}
-    <input
-        type="text"
-        placeholder="Tùng ơi, bạn đang nghĩ gì thế?"
-        className="flex-1 p-2 bg-gray-200 w-full text-gray-300 rounded-lg focus:outline-none"
-        onClick={toggleModal}
-    />
+                            {/* Input mở modal */}
+                            <input
+                                type="text"
+                                placeholder="Tùng ơi, bạn đang nghĩ gì thế?"
+                                className="flex-1 p-2 bg-gray-200 w-full text-gray-300 rounded-lg focus:outline-none"
+                                onClick={toggleModal}
+                            />
 
-    {/* Modal */}
-    {isModalOpen && (
-        <div
-            className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50"
-            onClick={toggleModal}
-        >
-            <div
-                className="bg-white rounded-lg p-6 w-3/6 h-3/6"
-                onClick={(e) => e.stopPropagation()}
-            >
-                <div className="flex items-center mb-4">
-                    <img
-                        src="https://randomuser.me/api/portraits/men/1.jpg"
-                        alt="User"
-                        className="w-10 h-10 rounded-full"
-                    />
-                    <div className="ml-3">
-                        <h4 className="text-sm font-medium text-gray-800">
-                            Nguyễn Thanh Tùng
-                        </h4>
-                    </div>
-                </div>
-                <h2 className="text-lg font-semibold mb-4">Tạo bài viết</h2>
+                            {/* Modal */}
+                            {isModalOpen && (
+                                <div
+                                    className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50"
+                                    onClick={toggleModal}
+                                >
+                                    <div
+                                        className="bg-white rounded-lg p-6 w-3/6 h-3/6"
+                                        onClick={(e) => e.stopPropagation()}
+                                    >
+                                        <div className="flex items-center mb-4">
+                                            <img
+                                                src="https://randomuser.me/api/portraits/men/1.jpg"
+                                                alt="User"
+                                                className="w-10 h-10 rounded-full"
+                                            />
+                                            <div className="ml-3">
+                                                <h4 className="text-sm font-medium text-gray-800">
+                                                    Nguyễn Thanh Tùng
+                                                </h4>
+                                            </div>
+                                        </div>
+                                        <h2 className="text-lg font-semibold mb-4">
+                                            Tạo bài viết
+                                        </h2>
 
-                {/* Form để đăng bài */}
-                <form onSubmit={handlePostSubmit}>
-                    {/* Phần nhập nội dung bài viết */}
-                    <textarea
-                        value={postContent}
-                        onChange={handlePostChange}
-                        placeholder="hôm nay đẹp trời"
-                        className="w-full p-2 mb-4 bg-gray-100 rounded-md h-24"
-                    />
+                                        {/* Form để đăng bài */}
+                                        <form onSubmit={handlePostSubmit}>
+                                            {/* Phần nhập nội dung bài viết */}
+                                            <textarea
+                                                value={postContent}
+                                                onChange={handlePostChange}
+                                                placeholder="hôm nay đẹp trời"
+                                                className="w-full p-2 mb-4 bg-gray-100 rounded-md h-24"
+                                            />
 
-                    {/* Thêm ảnh/video */}
-                    <div className="mb-4 border border-gray-300 rounded-lg p-2 text-center text-gray-500">
-                        <input
-                            type="file"
-                            accept="image/*, video/*"
-                            onChange={handleFileChange}
-                            className="w-full opacity-0 absolute cursor-pointer"
-                        />
-                        {file ? (
-                            <p>{file.name}</p>
-                        ) : (
-                            <span>Thêm ảnh/video hoặc kéo và thả</span>
-                        )}
-                    </div>
+                                            {/* Thêm ảnh/video */}
+                                            <div className="mb-4 border border-gray-300 rounded-lg p-2 text-center text-gray-500">
+                                                <input
+                                                    type="file"
+                                                    accept="image/*, video/*"
+                                                    multiple
+                                                    onChange={handleFileChange}
+                                                    className="w-full opacity-0 absolute cursor-pointer"
+                                                />
+                                                {files.length > 0 ? (
+                                                    <div className="grid gap-2 w-full max-w-lg mt-3">
+                                                        {files.length === 1 && (
+                                                            <div className="relative w-full">
+                                                                {files[0] instanceof
+                                                                    File && (
+                                                                    <>
+                                                                        <img
+                                                                            src={URL.createObjectURL(
+                                                                                files[0]
+                                                                            )}
+                                                                            alt="selected"
+                                                                            className="w-full rounded-lg"
+                                                                        />
+                                                                        <button
+                                                                            className="absolute top-2 right-2 bg-red-500 text-white px-2 py-1 rounded-full text-xs hover:bg-red-700"
+                                                                            onClick={() =>
+                                                                                handleRemoveImage(
+                                                                                    0
+                                                                                )
+                                                                            }
+                                                                        >
+                                                                            ❌
+                                                                        </button>
+                                                                    </>
+                                                                )}
+                                                            </div>
+                                                        )}
 
-                    {/* Nút đăng bài */}
-                    <div className="flex items-center justify-between">
-                        <button
-                            type="submit"  // Đảm bảo nút là button submit
-                            className="bg-blue-500 w-full text-white px-4 py-2 rounded-md"
-                        >
-                            Đăng
-                        </button>
-                    </div>
-                </form>
-            </div>
-        </div>
-    )}
-</div>
+                                                        {files.length === 2 && (
+                                                            <div className="grid grid-cols-2 gap-2">
+                                                                {files.map(
+                                                                    (
+                                                                        file,
+                                                                        index
+                                                                    ) =>
+                                                                        file instanceof
+                                                                            File && (
+                                                                            <div
+                                                                                key={
+                                                                                    index
+                                                                                }
+                                                                                className="relative"
+                                                                            >
+                                                                                <img
+                                                                                    src={URL.createObjectURL(
+                                                                                        file
+                                                                                    )}
+                                                                                    alt="selected"
+                                                                                    className="w-full rounded-lg"
+                                                                                />
+                                                                                <button
+                                                                                    className="absolute top-2 right-2 bg-red-500 text-white px-2 py-1 rounded-full text-xs hover:bg-red-700"
+                                                                                    onClick={() =>
+                                                                                        handleRemoveImage(
+                                                                                            index
+                                                                                        )
+                                                                                    }
+                                                                                >
+                                                                                    ❌
+                                                                                </button>
+                                                                            </div>
+                                                                        )
+                                                                )}
+                                                            </div>
+                                                        )}
 
+                                                        {files.length >= 3 && (
+                                                            <div className="grid grid-cols-3 gap-2">
+                                                                <div className="relative col-span-2">
+                                                                    {files[0] instanceof
+                                                                        File && (
+                                                                        <>
+                                                                            <img
+                                                                                src={URL.createObjectURL(
+                                                                                    files[0]
+                                                                                )}
+                                                                                alt="selected"
+                                                                                className="w-full h-full object-cover rounded-lg"
+                                                                            />
+                                                                            <button
+                                                                                className="absolute top-2 right-2 bg-red-500 text-white px-2 py-1 rounded-full text-xs hover:bg-red-700"
+                                                                                onClick={() =>
+                                                                                    handleRemoveImage(
+                                                                                        0
+                                                                                    )
+                                                                                }
+                                                                            >
+                                                                                ❌
+                                                                            </button>
+                                                                        </>
+                                                                    )}
+                                                                </div>
+                                                                <div className="grid grid-rows-2 gap-2">
+                                                                    {files
+                                                                        .slice(
+                                                                            1,
+                                                                            3
+                                                                        )
+                                                                        .map(
+                                                                            (
+                                                                                file,
+                                                                                index
+                                                                            ) =>
+                                                                                file instanceof
+                                                                                    File && (
+                                                                                    <div
+                                                                                        key={
+                                                                                            index +
+                                                                                            1
+                                                                                        }
+                                                                                        className="relative"
+                                                                                    >
+                                                                                        <img
+                                                                                            src={URL.createObjectURL(
+                                                                                                file
+                                                                                            )}
+                                                                                            alt="selected"
+                                                                                            className="w-full h-full object-cover rounded-lg"
+                                                                                        />
+                                                                                        <button
+                                                                                            className="absolute top-2 right-2 bg-red-500 text-white px-2 py-1 rounded-full text-xs hover:bg-red-700"
+                                                                                            onClick={() =>
+                                                                                                handleRemoveImage(
+                                                                                                    index +
+                                                                                                        1
+                                                                                                )
+                                                                                            }
+                                                                                        >
+                                                                                            ❌
+                                                                                        </button>
+                                                                                    </div>
+                                                                                )
+                                                                        )}
+                                                                </div>
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                ) : (
+                                                    <span>
+                                                        Thêm ảnh/video hoặc kéo
+                                                        và thả
+                                                    </span>
+                                                )}
+                                            </div>
+
+                                            {/* Nút đăng bài */}
+                                            <div className="flex items-center justify-between">
+                                                <button
+                                                    type="submit" // Đảm bảo nút là button submit
+                                                    className="bg-blue-500 w-full text-white px-4 py-2 rounded-md"
+                                                >
+                                                    Đăng
+                                                </button>
+                                            </div>
+                                        </form>
+                                    </div>
+                                </div>
+                            )}
+                        </div>
                     </div>
                     <div className="flex justify-start space-x-4 mt-4">
                         <button className="flex items-center text-red-500">
@@ -199,19 +346,19 @@ const Home = () => {
                 <div className="flex space-x-4 overflow-x-auto">
                     {/* Tạo tin */}
                     <a href="/story-up">
-                    <div className="relative w-24 h-40 bg-gray-300 rounded-lg shadow-md flex flex-col items-center justify-center">
-                        <img
-                            src="https://randomuser.me/api/portraits/men/4.jpg"
-                            alt="Create Story"
-                            className="w-12 h-12 rounded-full border-2 border-blue-500"
-                        />
-                        <span className="text-sm text-gray-300 mt-2">
-                            Tạo tin
-                        </span>
-                        <button className="absolute bottom-2 bg-blue-500 text-white p-1 rounded-full text-lg">
-                            +
-                        </button>
-                    </div>
+                        <div className="relative w-24 h-40 bg-gray-300 rounded-lg shadow-md flex flex-col items-center justify-center">
+                            <img
+                                src="https://randomuser.me/api/portraits/men/4.jpg"
+                                alt="Create Story"
+                                className="w-12 h-12 rounded-full border-2 border-blue-500"
+                            />
+                            <span className="text-sm text-gray-300 mt-2">
+                                Tạo tin
+                            </span>
+                            <button className="absolute bottom-2 bg-blue-500 text-white p-1 rounded-full text-lg">
+                                +
+                            </button>
+                        </div>
                     </a>
 
                     {/* Stories của bạn bè */}
@@ -322,10 +469,14 @@ const Home = () => {
                                         >
                                             {/* Header */}
                                             <div className="flex justify-between items-center p-4 border-b">
-                                                <h2 className="text-lg font-semibold">140 người đã thích</h2>
+                                                <h2 className="text-lg font-semibold">
+                                                    140 người đã thích
+                                                </h2>
                                                 <button
                                                     className="text-gray-500 hover:text-gray-800"
-                                                    onClick={() => setShowLikesModal(false)} // Nút đóng modal
+                                                    onClick={() =>
+                                                        setShowLikesModal(false)
+                                                    } // Nút đóng modal
                                                 >
                                                     ✕
                                                 </button>
@@ -334,9 +485,20 @@ const Home = () => {
                                             {/* Danh sách người đã thích */}
                                             <div className="p-4 space-y-4">
                                                 {[
-                                                    { name: "Trần Minh Điện", mutualFriends: "1 bạn chung" },
-                                                    { name: "Bùi Thơm", mutualFriends: "1 bạn chung" },
-                                                    { name: "Đào Huyền", mutualFriends: null },
+                                                    {
+                                                        name: "Trần Minh Điện",
+                                                        mutualFriends:
+                                                            "1 bạn chung",
+                                                    },
+                                                    {
+                                                        name: "Bùi Thơm",
+                                                        mutualFriends:
+                                                            "1 bạn chung",
+                                                    },
+                                                    {
+                                                        name: "Đào Huyền",
+                                                        mutualFriends: null,
+                                                    },
                                                 ].map((user, index) => (
                                                     <div
                                                         key={index}
@@ -344,8 +506,15 @@ const Home = () => {
                                                     >
                                                         <div className="flex items-center space-x-3">
                                                             <img
-                                                                src={`https://randomuser.me/api/portraits/${index % 2 === 0 ? "men" : "women"
-                                                                    }/${index + 10}.jpg`}
+                                                                src={`https://randomuser.me/api/portraits/${
+                                                                    index %
+                                                                        2 ===
+                                                                    0
+                                                                        ? "men"
+                                                                        : "women"
+                                                                }/${
+                                                                    index + 10
+                                                                }.jpg`}
                                                                 alt="User Avatar"
                                                                 className="w-8 h-8 rounded-full"
                                                             />
@@ -355,7 +524,9 @@ const Home = () => {
                                                                 </h5>
                                                                 {user.mutualFriends && (
                                                                     <p className="text-xs text-gray-600">
-                                                                        {user.mutualFriends}
+                                                                        {
+                                                                            user.mutualFriends
+                                                                        }
                                                                     </p>
                                                                 )}
                                                             </div>
@@ -383,7 +554,9 @@ const Home = () => {
                                 {showCommentsModal && (
                                     <div
                                         className="fixed inset-0 bg-black bg-opacity-75 flex justify-center items-center z-50"
-                                        onClick={() => setShowCommentsModal(false)} // Đóng modal khi click vào nền đen
+                                        onClick={() =>
+                                            setShowCommentsModal(false)
+                                        } // Đóng modal khi click vào nền đen
                                     >
                                         <div
                                             className="bg-white w-full max-w-2xl max-h-screen rounded-lg shadow-lg overflow-y-auto"
@@ -391,10 +564,16 @@ const Home = () => {
                                         >
                                             {/* Header */}
                                             <div className="flex justify-between items-center p-4 border-b">
-                                                <h2 className="text-lg font-semibold">Bài viết của Anna Sthesia</h2>
+                                                <h2 className="text-lg font-semibold">
+                                                    Bài viết của Anna Sthesia
+                                                </h2>
                                                 <button
                                                     className="text-gray-500 hover:text-gray-800"
-                                                    onClick={() => setShowCommentsModal(false)}
+                                                    onClick={() =>
+                                                        setShowCommentsModal(
+                                                            false
+                                                        )
+                                                    }
                                                 >
                                                     ✕
                                                 </button>
@@ -419,12 +598,23 @@ const Home = () => {
                                                             className="w-8 h-8 rounded-full"
                                                         />
                                                         <div>
-                                                            <h5 className="text-sm font-medium text-gray-800">Phi Hùng</h5>
-                                                            <p className="text-xs text-gray-600">Còn phòng không ạ?</p>
+                                                            <h5 className="text-sm font-medium text-gray-800">
+                                                                Phi Hùng
+                                                            </h5>
+                                                            <p className="text-xs text-gray-600">
+                                                                Còn phòng không
+                                                                ạ?
+                                                            </p>
                                                             <div className="text-xs text-gray-500 flex space-x-2 mt-1">
-                                                                <button>Like</button>
-                                                                <button>Reply</button>
-                                                                <span>1 phút</span>
+                                                                <button>
+                                                                    Like
+                                                                </button>
+                                                                <button>
+                                                                    Reply
+                                                                </button>
+                                                                <span>
+                                                                    1 phút
+                                                                </span>
                                                             </div>
                                                         </div>
                                                     </div>
@@ -436,12 +626,23 @@ const Home = () => {
                                                             className="w-8 h-8 rounded-full"
                                                         />
                                                         <div>
-                                                            <h5 className="text-sm font-medium text-gray-800">Phi Hùng</h5>
-                                                            <p className="text-xs text-gray-600">Còn phòng không ạ?</p>
+                                                            <h5 className="text-sm font-medium text-gray-800">
+                                                                Phi Hùng
+                                                            </h5>
+                                                            <p className="text-xs text-gray-600">
+                                                                Còn phòng không
+                                                                ạ?
+                                                            </p>
                                                             <div className="text-xs text-gray-500 flex space-x-2 mt-1">
-                                                                <button>Like</button>
-                                                                <button>Reply</button>
-                                                                <span>1 phút</span>
+                                                                <button>
+                                                                    Like
+                                                                </button>
+                                                                <button>
+                                                                    Reply
+                                                                </button>
+                                                                <span>
+                                                                    1 phút
+                                                                </span>
                                                             </div>
                                                         </div>
                                                     </div>
@@ -460,8 +661,12 @@ const Home = () => {
                                                     placeholder="Bình luận dưới tên Nguyễn Thanh Tùng"
                                                     className="flex-1 bg-gray-100 p-2 rounded-lg text-sm"
                                                 />
-                                                <button className="text-gray-500">📎</button>
-                                                <button className="text-gray-500">😊</button>
+                                                <button className="text-gray-500">
+                                                    📎
+                                                </button>
+                                                <button className="text-gray-500">
+                                                    😊
+                                                </button>
                                             </div>
                                         </div>
                                     </div>
@@ -800,7 +1005,6 @@ const Home = () => {
                             </div>
                         </div>
                     )}
-
 
                     {/* Like, Comment, Share */}
                     <div className="flex justify-between items-center text-gray-600 text-sm mb-4">
