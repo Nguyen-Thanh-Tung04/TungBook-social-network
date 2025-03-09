@@ -26,6 +26,12 @@ const Chat = () => {
                 },
                 {
                     sender: "dunglon 200",
+                    message: "Kieuer h áy",
+                    time: "07:45",
+                },
+                
+                {
+                    sender: "dunglon 200",
                     message: "Xem giao ch",
                     time: "07:46",
                 },
