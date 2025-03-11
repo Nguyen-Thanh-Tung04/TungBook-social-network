@@ -6,7 +6,8 @@ use App\Http\Controllers\Admin\Auth\RoleController;
 use App\Http\Controllers\Admin\Auth\UserController;
 use App\Http\Controllers\Client\AuthController;
 use App\Http\Controllers\Client\PostController;
-
+use App\Http\Controllers\Client\ReactionController;
+use App\Http\Controllers\Client\ShareController;
 
 /*
 |--------------------------------------------------------------------------
@@ -33,4 +34,12 @@ Route::post('login', [AuthController::class, 'login']);
 Route::middleware('auth:sanctum')->post('logout', [AuthController::class, 'logout']);
 
 // Route::apiResource('posts', PostController::class);
-Route::post('/posts', [PostController::class, 'store']);  // Không có auth:sanctum
+Route::middleware('auth:sanctum')->group(function () {
+    Route::post('/posts', [PostController::class, 'store']);
+    Route::get('/posts', [PostController::class, 'index']);
+});
+
+// Không cần prefix 'api' vì đã được Laravel tự động thêm
+Route::post('reactions', [ReactionController::class, 'store']);
+Route::delete('reactions/{id}', [ReactionController::class, 'destroy']);
+Route::post('shares', [ShareController::class, 'store']);

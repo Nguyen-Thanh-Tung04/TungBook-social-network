@@ -1,4 +1,5 @@
 <?php
+
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -21,10 +22,20 @@ class Post extends Model
     {
         return $this->hasManyThrough(Media::class, PostMedia::class, 'post_id', 'id', 'id', 'media_id');
     }
-    
+
     public function tags()
     {
         return $this->belongsToMany(Tag::class, 'post_tags');
     }
-    
+    // Post.php
+    public function reactions()
+    {
+        return $this->hasMany(Reaction::class);
+    }
+
+
+    public function shares()
+    {
+        return $this->hasMany(Share::class);
+    }
 }

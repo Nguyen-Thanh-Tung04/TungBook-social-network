@@ -12,13 +12,46 @@ use App\Models\PostMedia;
 use App\Models\PostTag;
 use Carbon\Carbon;
 use App\Models\Post;
+use Illuminate\Support\Facades\Auth;
+
 
 class PostController extends Controller
 {
     public function index()
     {
-        return response()->json(Post::with('user')->latest()->get());
+        $posts = Post::with([
+            'user:id,username,profile_picture',
+            'media:id,file_path',
+            'reactions.user:id,username,profile_picture',
+            'shares.user:id,username,profile_picture'
+        ])->latest()->get();
+    
+        $formattedPosts = $posts->map(function ($post) {
+            return [
+                'id' => $post->id,
+                'user' => [
+                    'name' => $post->user->username,
+                    'avatar' => asset('storage/' . $post->user->profile_picture) // Đảm bảo avatar cũng có URL đầy đủ
+                ],
+                'content' => $post->content,
+                'images' => $post->media->map(function ($media) {
+                    return asset('storage/' . $media->file_path);
+                })->toArray(),
+                'likes' => $post->reactions->count(),
+                'likedBy' => $post->reactions->take(5)->map(function ($reaction) {
+                    return [
+                        'name' => $reaction->user->username,
+                        'avatar' => asset('storage/' . $reaction->user->profile_picture),
+                        'mutualFriends' => null // Logic để lấy mutual friends nếu cần
+                    ];
+                }),
+                'shares' => $post->shares->count(),
+            ];
+        });
+    
+        return response()->json($formattedPosts);
     }
+    
 
     public function update(Request $request, $id)
     {
@@ -46,58 +79,56 @@ class PostController extends Controller
     public function store(Request $request)
     {
         Log::info('Dữ liệu nhận từ frontend:', $request->all());
-    
-        // Validate dữ liệu đầu vào
+
         $request->validate([
-            'user_id' => 'required|exists:users,id',
             'content' => 'nullable|string',
             'type_id' => 'required|exists:types,id',
-            'file' => 'nullable|file|mimes:jpg,jpeg,png,gif|max:5120' // 5MB
+            'files.*' => 'nullable|file|mimes:jpg,jpeg,png,gif|max:5120', // validate cho nhiều file
         ]);
-    
-        // Tạo bài viết
+
         $post = Post::create([
-            'user_id' => $request->user_id,
+            'user_id' => Auth::id(),
             'content' => $request->content,
             'type_id' => $request->type_id,
         ]);
-    
-        // Xử lý file ảnh nếu có
-        if ($request->hasFile('file')) {
-            $file = $request->file('file');
-            $fileName = time() . '_' . $file->getClientOriginalName();
-            $filePath = $file->storeAs('posts', $fileName, 'public'); // Lưu vào storage/app/public/posts
-    
-            // Lưu vào bảng medias
-            $media = Media::create([
-                'file_path' => $filePath,
-                'file_type' => $file->getMimeType(),
-                'file_size' => $file->getSize(),
-            ]);
-    
-            // Ghi log file đã nhận
-            Log::info('File đã lưu:', [
-                'name' => $fileName,
-                'path' => $filePath,
-                'size' => $file->getSize(),
-                'mime' => $file->getMimeType(),
-            ]);
-    
-            // Liên kết bài viết với ảnh trong post_medias
-            PostMedia::create([
-                'post_id' => $post->id,
-                'media_id' => $media->id,
-            ]);
+
+        if ($request->hasFile('files')) {
+            foreach ($request->file('files') as $file) {
+                $fileName = time() . '_' . $file->getClientOriginalName();
+                $filePath = $file->storeAs('posts', $fileName, 'public');
+
+                $media = Media::create([
+                    'file_path' => $filePath,
+                    'file_type' => $file->getMimeType(),
+                    'file_size' => $file->getSize(),
+                ]);
+
+                PostMedia::create([
+                    'post_id' => $post->id,
+                    'media_id' => $media->id,
+                ]);
+
+                Log::info('File đã lưu:', [
+                    'name' => $fileName,
+                    'path' => $filePath,
+                    'size' => $file->getSize(),
+                    'mime' => $file->getMimeType(),
+                ]);
+            }
         } else {
             Log::warning('Không có file nào được tải lên.');
         }
-    
+
         return response()->json([
             'message' => 'Bài viết đã được tạo thành công!',
-            'post' => $post->load('media'), // Load ảnh liên quan
+            'post' => $post->load(['media' => function ($query) {
+                $query->select('id', 'file_path')->get()->each(function ($media) {
+                    $media->file_path = asset('storage/' . $media->file_path);
+                });
+            }]),
         ], 201);
     }
-    
+
     public function show($id)
     {
         return response()->json(Post::with('user')->findOrFail($id));

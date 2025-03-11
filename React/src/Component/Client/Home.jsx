@@ -1,5 +1,5 @@
 // Import các thư viện cần thiết
-import React, { useState } from "react";
+import React, { useEffect, useState } from 'react';
 import { FaVideo, FaPhotoVideo, FaSmile } from "react-icons/fa"; // Import các icon cần dùng
 import axios from "axios";
 import { IoSend } from "react-icons/io5"; // Đúng thư viện
@@ -48,14 +48,15 @@ const Home = () => {
         e.preventDefault();
 
         const formData = new FormData();
-        formData.append("user_id", 1);
         formData.append("type_id", 1);
         formData.append("content", postContent);
 
-        // Lặp qua danh sách file và thêm vào formData
-        files.forEach((file, index) => {
-            formData.append(`files[${index}]`, file);
+        // Thêm nhiều file vào FormData
+        files.forEach((file) => {
+            formData.append("files[]", file);
         });
+
+        const token = localStorage.getItem("authToken");
 
         try {
             const response = await axios.post(
@@ -64,6 +65,7 @@ const Home = () => {
                 {
                     headers: {
                         "Content-Type": "multipart/form-data",
+                        "Authorization": `Bearer ${token}`,
                     },
                 }
             );
@@ -77,6 +79,7 @@ const Home = () => {
             );
         }
     };
+
 
     const friendsStories = [
         {
@@ -216,9 +219,130 @@ const Home = () => {
         setCurrentIndex((prev) => (prev - 1 + images.length) % images.length);
     };
 
+    const [posts, setPosts] = useState([]);
+
+    useEffect(() => {
+        fetchPosts();
+    }, []);
+    const fetchPosts = async () => {
+        const token = localStorage.getItem('authToken');
+        try {
+            const response = await axios.get('http://127.0.0.1:8000/api/posts', {
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                },
+            });
+            setPosts(response.data);
+        } catch (error) {
+            console.error('Error fetching posts:', error);
+        }
+    };
+
     return (
         <div className="" style={{ width: "50vw" }}>
             <main className="container mx-auto px-9 py-8 max-w-[1005px] bg-gray-200 ">
+                {posts.map((post) => (
+                    <div key={post.id} className="bg-white p-4 rounded-lg shadow-md mb-6">
+                        <div className="flex items-center mb-4">
+                            <img src={post.user.avatar} alt="User Avatar" className="w-10 h-10 rounded-full" />
+                            <div className="ml-3 flex-1">
+                                <h4 className="text-sm font-medium text-gray-800">{post.user.name}</h4>
+                                <p className="text-xs text-blue-500">Just Now</p>
+                            </div>
+                        </div>
+
+                        <p className="text-sm text-gray-700 mb-4">{post.content}</p>
+
+                        {post.images && post.images.length === 1 && (
+                            <img
+                                src={post.images[0]}
+                                alt="Post Image"
+                                className="w-full h-auto rounded-lg cursor-pointer"
+                                onClick={() => handleImageClick(post.images[0])}
+                            />
+                        )}
+
+                        {post.images && post.images.length === 2 && (
+                            <div className="grid grid-cols-2 gap-4">
+                                {post.images.map((img, index) => (
+                                    <img
+                                        key={index}
+                                        src={img}
+                                        alt={`Post Image ${index}`}
+                                        className="w-full h-full object-cover rounded-lg cursor-pointer"
+                                        onClick={() => handleImageClick(img)}
+                                    />
+                                ))}
+                            </div>
+                        )}
+
+                        {post.images && post.images.length === 3 && (
+                            <div className="grid grid-cols-3 gap-4">
+                                <div className="col-span-2">
+                                    <img
+                                        src={post.images[0]}
+                                        alt="Main Image"
+                                        className="w-full h-full object-cover rounded-lg cursor-pointer"
+                                        onClick={() => handleImageClick(post.images[0])}
+                                    />
+                                </div>
+                                <div className="grid grid-rows-2 gap-4">
+                                    {post.images.slice(1).map((img, index) => (
+                                        <img
+                                            key={index}
+                                            src={img}
+                                            alt={`Post Image ${index}`}
+                                            className="w-full h-full object-cover rounded-lg cursor-pointer"
+                                            onClick={() => handleImageClick(img)}
+                                        />
+                                    ))}
+                                </div>
+                            </div>
+                        )}
+
+                        <div className="flex justify-between items-center text-gray-600 text-sm mt-4">
+                            <div className="flex space-x-4">
+                                <button onClick={() => openLikesModal(post.id)} className="text-blue-500 font-semibold">
+                                    👍 {post.likes} Likes
+                                </button>
+                                <button onClick={() => openCommentsModal(post.id)}>
+                                    💬 {post.comments?.length || 0} Comments
+                                </button>
+                            </div>
+                            <button className="flex items-center space-x-1">
+                                🔗 {post.shares} Shares
+                            </button>
+                        </div>
+
+                        <hr className="my-4" />
+
+                        <div className="space-y-3">
+                            {post.comments?.slice(0, 2).map((comment, index) => (
+                                <div key={index} className="flex items-start space-x-3">
+                                    <img src={comment.user.avatar} alt="User" className="w-8 h-8 rounded-full" />
+                                    <div>
+                                        <h5 className="text-sm font-medium text-gray-800">{comment.user.name}</h5>
+                                        <p className="text-xs text-gray-600">{comment.text}</p>
+                                    </div>
+                                </div>
+                            ))}
+                            {post.comments?.length > 2 && (
+                                <button className="text-blue-500 text-sm mt-2" onClick={() => openCommentsModal(post.id)}>
+                                    Xem thêm bình luận...
+                                </button>
+                            )}
+                        </div>
+
+                        <hr className="my-4" />
+
+                        <div className="flex items-center space-x-3">
+                            <img src="https://randomuser.me/api/portraits/women/2.jpg" alt="User" className="w-8 h-8 rounded-full" />
+                            <input type="text" placeholder="Enter Your Comment" className="flex-1 bg-gray-100 p-2 rounded-lg text-sm" />
+                            <button className="text-gray-500 text-xl"><IoSend /></button>
+                        </div>
+                    </div>
+                ))}
+
                 {/* Thanh trạng thái */}
                 <div className="bg-white p-4 rounded-lg shadow-md mb-6">
                     <div className="flex items-center">
@@ -567,6 +691,8 @@ const Home = () => {
                         </div>
                     ))}
                 </div>
+
+                {/* Danh sách bài viết */}
 
                 {fakePosts.map((post) => (
                     <div key={post.id} className="bg-white p-4 rounded-lg shadow-md mb-6">
