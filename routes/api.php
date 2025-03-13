@@ -37,8 +37,8 @@ Route::middleware('auth:sanctum')->post('logout', [AuthController::class, 'logou
 Route::middleware('auth:sanctum')->group(function () {
     Route::post('/posts', [PostController::class, 'store']);
     Route::get('/posts', [PostController::class, 'index']);
+    Route::delete('/posts/{id}', [PostController::class, 'destroy']); // Thêm route xóa bài viết
 });
-
 // Không cần prefix 'api' vì đã được Laravel tự động thêm
 Route::post('reactions', [ReactionController::class, 'store']);
 Route::delete('reactions/{id}', [ReactionController::class, 'destroy']);

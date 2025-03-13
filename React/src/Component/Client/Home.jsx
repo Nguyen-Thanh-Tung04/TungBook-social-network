@@ -1,9 +1,10 @@
 // Import các thư viện cần thiết
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from "react";
 import { FaVideo, FaPhotoVideo, FaSmile } from "react-icons/fa"; // Import các icon cần dùng
 import axios from "axios";
-import { IoSend } from "react-icons/io5"; // Đúng thư viện
-
+import { IoSend, IoEllipsisHorizontal } from "react-icons/io5";
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 const Home = () => {
     const [selectedImage, setSelectedImage] = useState(null);
@@ -72,6 +73,9 @@ const Home = () => {
 
             console.log("Response từ server:", response.data);
             toggleModal();
+
+            // Cập nhật lại danh sách bài viết
+            await fetchPosts();
         } catch (error) {
             console.error(
                 "Lỗi khi gửi request:",
@@ -238,110 +242,72 @@ const Home = () => {
         }
     };
 
+    // dấu 3 chấm bài viết 
+    const [openPostOptionsId, setOpenPostOptionsId] = useState(null);
+    const modalRef = useRef(null);
+    const buttonRef = useRef(null);
+
+
+    const togglePostOptionsModal = (postId) => {
+        setOpenPostOptionsId(prevId => (prevId === postId ? null : postId));
+    };
+
+
+    // Đóng modal khi click ra ngoài
+    useEffect(() => {
+        const handleClickOutside = (event) => {
+            if (
+                modalRef.current &&
+                !modalRef.current.contains(event.target) &&
+                !buttonRef.current.contains(event.target)
+            ) {
+                setOpenPostOptionsId(null);
+            }
+        };
+
+        document.addEventListener("mousedown", handleClickOutside);
+        return () => {
+            document.removeEventListener("mousedown", handleClickOutside);
+        };
+    }, []);
+
+
+    const handleEditPost = () => {
+        console.log("Chỉnh sửa bài viết");
+        setIsPostOptionsModalOpen(false);
+    };
+
+    const handleEditPrivacy = () => {
+        console.log("Chỉnh sửa đối tượng");
+        setIsPostOptionsModalOpen(false);
+    };
+
+    // Hàm xóa bài viết
+    const handleDeletePost = async (postId) => {
+        console.log("Xóa bài viết:", postId);
+        if (confirm("Bạn có chắc chắn muốn xóa bài viết này?")) {
+            try {
+                const token = localStorage.getItem("authToken");
+                await axios.delete(`http://localhost:8000/api/posts/${postId}`, {
+                    headers: {
+                        Authorization: `Bearer ${token}`,
+                    },
+                });
+
+                // Cập nhật lại UI sau khi xóa
+                setPosts(posts.filter(post => post.id !== postId));
+                toast.success("Bài viết đã được xóa!");
+            } catch (error) {
+                toast.error("Xóa bài viết thất bại!");
+                console.error("Xóa bài viết lỗi:", error);
+            }
+        }
+    };
+
+
     return (
         <div className="" style={{ width: "50vw" }}>
             <main className="container mx-auto px-9 py-8 max-w-[1005px] bg-gray-200 ">
-                {posts.map((post) => (
-                    <div key={post.id} className="bg-white p-4 rounded-lg shadow-md mb-6">
-                        <div className="flex items-center mb-4">
-                            <img src={post.user.avatar} alt="User Avatar" className="w-10 h-10 rounded-full" />
-                            <div className="ml-3 flex-1">
-                                <h4 className="text-sm font-medium text-gray-800">{post.user.name}</h4>
-                                <p className="text-xs text-blue-500">Just Now</p>
-                            </div>
-                        </div>
-
-                        <p className="text-sm text-gray-700 mb-4">{post.content}</p>
-
-                        {post.images && post.images.length === 1 && (
-                            <img
-                                src={post.images[0]}
-                                alt="Post Image"
-                                className="w-full h-auto rounded-lg cursor-pointer"
-                                onClick={() => handleImageClick(post.images[0])}
-                            />
-                        )}
-
-                        {post.images && post.images.length === 2 && (
-                            <div className="grid grid-cols-2 gap-4">
-                                {post.images.map((img, index) => (
-                                    <img
-                                        key={index}
-                                        src={img}
-                                        alt={`Post Image ${index}`}
-                                        className="w-full h-full object-cover rounded-lg cursor-pointer"
-                                        onClick={() => handleImageClick(img)}
-                                    />
-                                ))}
-                            </div>
-                        )}
-
-                        {post.images && post.images.length === 3 && (
-                            <div className="grid grid-cols-3 gap-4">
-                                <div className="col-span-2">
-                                    <img
-                                        src={post.images[0]}
-                                        alt="Main Image"
-                                        className="w-full h-full object-cover rounded-lg cursor-pointer"
-                                        onClick={() => handleImageClick(post.images[0])}
-                                    />
-                                </div>
-                                <div className="grid grid-rows-2 gap-4">
-                                    {post.images.slice(1).map((img, index) => (
-                                        <img
-                                            key={index}
-                                            src={img}
-                                            alt={`Post Image ${index}`}
-                                            className="w-full h-full object-cover rounded-lg cursor-pointer"
-                                            onClick={() => handleImageClick(img)}
-                                        />
-                                    ))}
-                                </div>
-                            </div>
-                        )}
-
-                        <div className="flex justify-between items-center text-gray-600 text-sm mt-4">
-                            <div className="flex space-x-4">
-                                <button onClick={() => openLikesModal(post.id)} className="text-blue-500 font-semibold">
-                                    👍 {post.likes} Likes
-                                </button>
-                                <button onClick={() => openCommentsModal(post.id)}>
-                                    💬 {post.comments?.length || 0} Comments
-                                </button>
-                            </div>
-                            <button className="flex items-center space-x-1">
-                                🔗 {post.shares} Shares
-                            </button>
-                        </div>
-
-                        <hr className="my-4" />
-
-                        <div className="space-y-3">
-                            {post.comments?.slice(0, 2).map((comment, index) => (
-                                <div key={index} className="flex items-start space-x-3">
-                                    <img src={comment.user.avatar} alt="User" className="w-8 h-8 rounded-full" />
-                                    <div>
-                                        <h5 className="text-sm font-medium text-gray-800">{comment.user.name}</h5>
-                                        <p className="text-xs text-gray-600">{comment.text}</p>
-                                    </div>
-                                </div>
-                            ))}
-                            {post.comments?.length > 2 && (
-                                <button className="text-blue-500 text-sm mt-2" onClick={() => openCommentsModal(post.id)}>
-                                    Xem thêm bình luận...
-                                </button>
-                            )}
-                        </div>
-
-                        <hr className="my-4" />
-
-                        <div className="flex items-center space-x-3">
-                            <img src="https://randomuser.me/api/portraits/women/2.jpg" alt="User" className="w-8 h-8 rounded-full" />
-                            <input type="text" placeholder="Enter Your Comment" className="flex-1 bg-gray-100 p-2 rounded-lg text-sm" />
-                            <button className="text-gray-500 text-xl"><IoSend /></button>
-                        </div>
-                    </div>
-                ))}
 
                 {/* Thanh trạng thái */}
                 <div className="bg-white p-4 rounded-lg shadow-md mb-6">
@@ -694,60 +660,123 @@ const Home = () => {
 
                 {/* Danh sách bài viết */}
 
-                {fakePosts.map((post) => (
+
+                {posts.map((post) => (
                     <div key={post.id} className="bg-white p-4 rounded-lg shadow-md mb-6">
-                        {/* Header */}
-                        <div className="flex items-center mb-4">
-                            <img src={post.user.avatar} alt="User Avatar" className="w-10 h-10 rounded-full" />
-                            <div className="ml-3 flex-1">
-                                <h4 className="text-sm font-medium text-gray-800">{post.user.name}</h4>
-                                <p className="text-xs text-blue-500">Just Now</p>
+                        <div className="flex items-center justify-between mb-4">
+                            <div className="flex items-center">
+                                <img src={post.user.avatar} alt="User Avatar" className="w-10 h-10 rounded-full" />
+                                <div className="ml-3 flex-1">
+                                    <h4 className="text-sm font-medium text-gray-800">{post.user.name}</h4>
+                                    <p className="text-xs text-blue-500">Just Now</p>
+                                </div>
                             </div>
+                            <div className="relative inline-block">
+                                <button
+                                    ref={buttonRef}
+                                    onClick={() => togglePostOptionsModal(post.id)}
+                                    className="text-gray-500"
+                                >
+                                    <IoEllipsisHorizontal size={20} />
+                                </button>
+
+                                {openPostOptionsId === post.id && (
+                                    <div
+                                        ref={modalRef}
+                                        className="absolute right-0 mt-2 w-48 bg-white border rounded shadow-lg post-menu"
+                                    >
+                                        <button
+                                            className="w-full text-left py-2 px-4 hover:bg-gray-100"
+                                            onClick={handleEditPost}
+                                        >
+                                            ✏️ Chỉnh sửa bài viết
+                                        </button>
+                                        <button
+                                            className="w-full text-left py-2 px-4 hover:bg-gray-100"
+                                            onClick={handleEditPrivacy}
+                                        >
+                                            🔒 Chỉnh sửa đối tượng
+                                        </button>
+                                        <button
+                                            className="w-full text-left py-2 px-4 hover:bg-gray-100 text-red-500"
+                                            onClick={() => handleDeletePost(post.id)}
+                                        >
+                                            🗑️ Xóa bài viết
+                                        </button>
+                                    </div>
+                                )}
+                            </div>
+
+
                         </div>
 
-                        {/* Content */}
                         <p className="text-sm text-gray-700 mb-4">{post.content}</p>
 
-                        {/* Images */}
-                        {post.images.length === 1 && (
-                            <img src={post.images[0]} alt="Post Image" className="w-full h-auto rounded-lg cursor-pointer" onClick={() => handleImageClick(post.images[0])} />
+                        {post.images && post.images.length === 1 && (
+                            <img
+                                src={post.images[0]}
+                                alt="Post Image"
+                                className="w-full h-auto rounded-lg cursor-pointer"
+                                onClick={() => handleImageClick(post.images[0])}
+                            />
                         )}
-                        {post.images.length === 2 && (
+
+                        {post.images && post.images.length === 2 && (
                             <div className="grid grid-cols-2 gap-4">
                                 {post.images.map((img, index) => (
-                                    <img key={index} src={img} alt={`Post Image ${index}`} className="w-full h-full object-cover rounded-lg cursor-pointer" onClick={() => handleImageClick(img)} />
+                                    <img
+                                        key={index}
+                                        src={img}
+                                        alt={`Post Image ${index}`}
+                                        className="w-full h-full object-cover rounded-lg cursor-pointer"
+                                        onClick={() => handleImageClick(img)}
+                                    />
                                 ))}
                             </div>
                         )}
-                        {post.images.length === 3 && (
+
+                        {post.images && post.images.length === 3 && (
                             <div className="grid grid-cols-3 gap-4">
                                 <div className="col-span-2">
-                                    <img src={post.images[0]} alt="Main Image" className="w-full h-full object-cover rounded-lg cursor-pointer" onClick={() => handleImageClick(post.images[0])} />
+                                    <img
+                                        src={post.images[0]}
+                                        alt="Main Image"
+                                        className="w-full h-full object-cover rounded-lg cursor-pointer"
+                                        onClick={() => handleImageClick(post.images[0])}
+                                    />
                                 </div>
                                 <div className="grid grid-rows-2 gap-4">
                                     {post.images.slice(1).map((img, index) => (
-                                        <img key={index} src={img} alt={`Post Image ${index}`} className="w-full h-full object-cover rounded-lg cursor-pointer" onClick={() => handleImageClick(img)} />
+                                        <img
+                                            key={index}
+                                            src={img}
+                                            alt={`Post Image ${index}`}
+                                            className="w-full h-full object-cover rounded-lg cursor-pointer"
+                                            onClick={() => handleImageClick(img)}
+                                        />
                                     ))}
                                 </div>
                             </div>
                         )}
 
-                        {/* Like, Comment, Share */}
                         <div className="flex justify-between items-center text-gray-600 text-sm mt-4">
                             <div className="flex space-x-4">
-                                <button onClick={() => openLikesModal(post.id)}
-                                    className="text-blue-500 font-semibold">👍 {post.likes} Likes</button>
-
-                                <button onClick={() => openCommentsModal(post.id)}>💬 {post.comments.length} Comments</button>
+                                <button onClick={() => openLikesModal(post.id)} className="text-blue-500 font-semibold">
+                                    👍 {post.likes} Likes
+                                </button>
+                                <button onClick={() => openCommentsModal(post.id)}>
+                                    💬 {post.comments?.length || 0} Comments
+                                </button>
                             </div>
-                            <button className="flex items-center space-x-1">🔗 {post.shares} Shares</button>
+                            <button className="flex items-center space-x-1">
+                                🔗 {post.shares} Shares
+                            </button>
                         </div>
 
                         <hr className="my-4" />
 
-                        {/* Display 1-2 comments */}
                         <div className="space-y-3">
-                            {post.comments.slice(0, 2).map((comment, index) => (
+                            {post.comments?.slice(0, 2).map((comment, index) => (
                                 <div key={index} className="flex items-start space-x-3">
                                     <img src={comment.user.avatar} alt="User" className="w-8 h-8 rounded-full" />
                                     <div>
@@ -756,8 +785,8 @@ const Home = () => {
                                     </div>
                                 </div>
                             ))}
-                            {post.comments.length > 2 && (
-                                <button className="text-blue-500 text-sm mt-2" onClick={() => setShowCommentsModal(true)}>
+                            {post.comments?.length > 2 && (
+                                <button className="text-blue-500 text-sm mt-2" onClick={() => openCommentsModal(post.id)}>
                                     Xem thêm bình luận...
                                 </button>
                             )}
@@ -765,7 +794,6 @@ const Home = () => {
 
                         <hr className="my-4" />
 
-                        {/* Add Comment */}
                         <div className="flex items-center space-x-3">
                             <img src="https://randomuser.me/api/portraits/women/2.jpg" alt="User" className="w-8 h-8 rounded-full" />
                             <input type="text" placeholder="Enter Your Comment" className="flex-1 bg-gray-100 p-2 rounded-lg text-sm" />

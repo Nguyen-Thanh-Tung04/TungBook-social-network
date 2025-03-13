@@ -13,7 +13,7 @@ use App\Models\PostTag;
 use Carbon\Carbon;
 use App\Models\Post;
 use Illuminate\Support\Facades\Auth;
-
+use Illuminate\Support\Facades\Storage;
 
 class PostController extends Controller
 {
@@ -136,7 +136,31 @@ class PostController extends Controller
 
     public function destroy($id)
     {
-        Post::findOrFail($id)->delete();
-        return response()->json(['message' => 'Bài viết đã bị xóa']);
+        try {
+            $post = Post::findOrFail($id);
+    
+            // Xóa media liên quan
+            foreach ($post->media as $media) {
+                // Xóa file trong storage
+                Storage::disk('public')->delete($media->file_path);
+                // Xóa bản ghi trong bảng media
+                $media->delete();
+            }
+    
+            // Xóa bản ghi trong bảng post_media
+            PostMedia::where('post_id', $id)->delete();
+    
+            // Xóa các liên kết khác nếu cần (reactions, shares, v.v.)
+            $post->reactions()->delete();
+            $post->shares()->delete();
+    
+            // Cuối cùng, xóa bài viết
+            $post->delete();
+    
+            return response()->json(['message' => 'Bài viết đã bị xóa'], 200);
+        } catch (\Exception $e) {
+            return response()->json(['error' => 'Xóa bài viết thất bại!'], 500);
+        }
     }
+    
 }
