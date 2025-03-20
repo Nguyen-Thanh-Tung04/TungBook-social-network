@@ -43,3 +43,7 @@ Route::middleware('auth:sanctum')->group(function () {
 Route::post('reactions', [ReactionController::class, 'store']);
 Route::delete('reactions/{id}', [ReactionController::class, 'destroy']);
 Route::post('shares', [ShareController::class, 'store']);
+
+// cập nhật avatar
+Route::middleware('auth:sanctum')->post('/user/avatar', [AuthController::class, 'updateAvatar']);
+Route::middleware('auth:sanctum')->get('/me', [AuthController::class, 'me']);

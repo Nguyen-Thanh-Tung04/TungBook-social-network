@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import {
     FaFacebook,
     FaTwitter,
@@ -6,12 +6,24 @@ import {
     FaGoogle,
     FaLinkedin,
 } from "react-icons/fa"; // Các biểu tượng mạng xã hội
+import axios from "axios";
+
 
 function ProfilePage() {
     const [activeTab, setActiveTab] = useState("first");
 
     // Tab con trong "Friends"
     const [activeSubTab, setActiveSubTab] = useState("all");
+    const [isImageModalOpen, setIsImageModalOpen] = useState(false);
+    const [isFileModalOpen, setIsFileModalOpen] = useState(false);
+    const fileInputRef = useRef(null);
+    const [userData, setUserData] = useState({
+        name: '',
+        avatar_url: '',
+        posts: 0,
+        followers: 0,
+        following: 0,
+    });
 
     // thông tin cá nhân 
     const [isModalOpen, setIsModalOpen] = useState(false);
@@ -121,16 +133,110 @@ function ProfilePage() {
     // Button bạn bè 
     const [isOpen, setIsOpen] = useState(false);
 
+    // Modal ảnh đại diện
+    const [isAvatarModalOpen, setIsAvatarModalOpen] = useState(false);
+    const [modalPosition, setModalPosition] = useState({ top: 0, left: 0 });
+    const avatarRef = useRef(null);
+
+    const toggleAvatarModal = () => {
+        if (avatarRef.current) {
+            const rect = avatarRef.current.getBoundingClientRect();
+            setModalPosition({
+                top: rect.bottom + window.scrollY + 5,
+                left: rect.left + window.scrollX,
+            });
+        }
+        setIsAvatarModalOpen(!isAvatarModalOpen);
+    };
+
+    const handleViewAvatar = () => {
+        setIsImageModalOpen(true);
+        setIsAvatarModalOpen(false);
+    };
+
+    const [avatarPreview, setAvatarPreview] = useState(null);
+
+    const handleAvatarChange = (e) => {
+        const file = e.target.files[0];
+        if (file) {
+            setAvatarPreview(URL.createObjectURL(file));
+        }
+    };
+    const handleUploadAvatar = async () => {
+        const file = fileInputRef.current.files[0];
+        if (!file) return;
+    
+        const formData = new FormData();
+        formData.append("avatar", file);
+    
+        try {
+            const token = localStorage.getItem("authToken");
+            const response = await axios.post(
+                "http://127.0.0.1:8000/api/user/avatar",
+                formData,
+                {
+                    headers: {
+                        Authorization: `Bearer ${token}`,
+                        "Content-Type": "multipart/form-data",
+                    },
+                }
+            );
+    
+            alert("Avatar updated successfully!");
+            
+            // Cập nhật avatarPreview để hiển thị ảnh mới
+            setAvatarPreview(URL.createObjectURL(file));
+    
+            // Đóng modal
+            setIsFileModalOpen(false);
+            setIsAvatarModalOpen(false);
+        } catch (error) {
+            console.error("Upload failed", error);
+        }
+    };
+    
+
+    // Thêm hàm này vào phần code của bạn
+    const handleChooseAvatar = () => {
+        setIsFileModalOpen(true);
+    };
+
+    const handleCloseImageModal = () => {
+        setIsImageModalOpen(false);
+    };
+
+    useEffect(() => {
+        const fetchUserData = async () => {
+            try {
+                const token = localStorage.getItem('authToken');
+                const response = await axios.get('http://127.0.0.1:8000/api/me', {
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                    },
+                });
+                console.log(response.data); // Kiểm tra dữ liệu trả về
+                setUserData(response.data.user);
+            } catch (error) {
+                console.error('Failed to fetch user data', error);
+            }
+        };
+        fetchUserData();
+    }, []);
+
+
+    // Bài viết 
 
     return (
         <div className=" bg-gray-100 min-h-fit ">
             {/* Header */}
-            <div className="bg-gradient-to-r from-blue-500 to-teal-400 p-6 flex items-center justify-between">
+            <div className="bg-gradient-to-r from-blue-500 to-teal-400 p-6 flex items-center justify-between relative">
                 <div className="flex items-center">
                     <img
-                        src="https://randomuser.me/api/portraits/men/1.jpg" // Avatar người dùng
+                        ref={avatarRef}
+                        src={avatarPreview || userData?.avatar_url || 'https://via.placeholder.com/150'}
                         alt="User Avatar"
-                        className="w-40 h-40 rounded-full border-4 border-white"
+                        className="w-40 h-40 rounded-full border-4 border-white cursor-pointer"
+                        onClick={toggleAvatarModal}
                     />
                     <div className="ml-4 text-white">
                         <h1 className="text-2xl font-semibold">Thanh Tùng</h1>
@@ -139,14 +245,62 @@ function ProfilePage() {
                         </div>
                     </div>
                 </div>
-                <div className="flex space-x-4">
-                    <FaFacebook className="text-white text-xl" />
-                    <FaTwitter className="text-white text-xl" />
-                    <FaInstagram className="text-white text-xl" />
-                    <FaGoogle className="text-white text-xl" />
-                    <FaLinkedin className="text-white text-xl" />
-                </div>
+
+                {isAvatarModalOpen && (
+                    <div className="absolute bg-white border border-gray-300 rounded-lg shadow-lg p-4 z-10 transform -translate-x-1/2" style={{ top: "200px", left: "200px" }}>
+                        <button className="block w-full text-left p-2 hover:bg-gray-100" onClick={handleViewAvatar}>Xem ảnh đại diện</button>
+                        <button className="block w-full text-left p-2 hover:bg-gray-100" onClick={handleChooseAvatar}>Chọn ảnh đại diện</button>
+                    </div>
+                )}
             </div>
+
+            {isImageModalOpen && (
+                <div className="fixed inset-0 bg-black bg-opacity-80 flex justify-center items-center z-50">
+                    <div className="relative w-auto max-w-5xl">
+                        <button onClick={handleCloseImageModal} className="absolute top-2 right-2 text-white text-3xl">&times;</button>
+                        <img
+                            src={avatarPreview || userData?.avatar_url || 'https://via.placeholder.com/150'}
+                            alt="Avatar Detail"
+                            className="w-[800px] h-auto max-h-[90vh] rounded-lg"
+                        />
+                    </div>
+                </div>
+            )}
+
+
+            {/* Modal chọn ảnh đại diện */}
+            {isFileModalOpen && (
+                <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-20">
+                    <div className="bg-white p-4 rounded-lg shadow-lg relative">
+                        <button onClick={() => setIsFileModalOpen(false)} className="absolute top-2 right-2 text-black text-3xl">&times;</button>
+
+                        <h2 className="text-lg font-semibold mb-4">Chọn ảnh đại diện mới</h2>
+
+                        <input
+                            type="file"
+                            ref={fileInputRef}
+                            accept="image/*"
+                            onChange={handleAvatarChange}
+                            className="mb-4"
+                        />
+
+                        {avatarPreview && (
+                            <img
+                                src={avatarPreview}
+                                alt="Avatar Preview"
+                                className="w-32 h-32 object-cover rounded-full mb-4"
+                            />
+                        )}
+
+                        <button
+                            onClick={handleUploadAvatar}
+                            className="p-2 bg-blue-500 text-white rounded-lg"
+                        >
+                            Cập nhật
+                        </button>
+                    </div>
+                </div>
+            )}
 
             {/* Tab Menu */}
             <div className="flex justify-center mb-4 py-7">
