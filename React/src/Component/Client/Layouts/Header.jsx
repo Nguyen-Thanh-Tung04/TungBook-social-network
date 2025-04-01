@@ -10,6 +10,33 @@ const Header = () => {
   const [notificationOpen, setNotificationOpen] = useState(false); // State to toggle notification menu
   const notificationRef = useRef(null); // Ref for the notification menu
 
+  // Hiển thị ảnh đại diện người dùng
+  const [userData, setUserData] = useState({
+    name: '',
+    avatar_url: '',
+    posts: 0,
+    followers: 0,
+    following: 0,
+  });
+  useEffect(() => {
+    const fetchUserData = async () => {
+      try {
+        const token = localStorage.getItem('authToken');
+        const response = await axios.get('http://127.0.0.1:8000/api/me', {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+          },
+        });
+        console.log(response.data); // Kiểm tra dữ liệu trả về
+        setUserData(response.data.user);
+      } catch (error) {
+        console.error('Failed to fetch user data', error);
+      }
+    };
+    fetchUserData();
+  }, []);
+
+
   const handleLogout = async () => {
     try {
       const response = await axios.post(
@@ -146,7 +173,7 @@ const Header = () => {
                 {/* Avatar and Dropdown Menu */}
                 <li className="relative">
                   <img
-                    src="https://randomuser.me/api/portraits/men/1.jpg"
+                    src={userData?.avatar_url || 'https://scontent.fhan4-3.fna.fbcdn.net/v/t39.30808-6/430028095_1758861091286933_7708332768369038985_n.jpg?_nc_cat=100&ccb=1-7&_nc_sid=6ee11a&_nc_eui2=AeHe4DTpbgymh3ve45vOO9iOJrbBaxDj87QmtsFrEOPztDUYQ7OYmp0HgJgDKax5xCYXQ4XAE0toaxhN-Keq3fcP&_nc_ohc=StIE3wkzbkIQ7kNvgHZX9fC&_nc_oc=Adk4jWxUg0SCKCbUa-5T2EiIf4_S4rxqfgZwwLKsz0qt9ZlkAIIwESzh0CnwdpuIQK4&_nc_zt=23&_nc_ht=scontent.fhan4-3.fna&_nc_gid=5rVn09AEmF7Qt1jJA3a1lA&oh=00_AYHA91Oda2kvtNjXtwejlCK1m5kJiANeG3t5fY5_SpamxA&oe=67F069EF'}
                     alt="User Avatar"
                     className="w-12 h-12 rounded-full cursor-pointer border-4 border-white"
                     onClick={toggleMenu} // Toggle avatar menu

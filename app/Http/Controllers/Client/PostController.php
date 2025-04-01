@@ -30,6 +30,7 @@ class PostController extends Controller
             return [
                 'id' => $post->id,
                 'user' => [
+                    'id' => $post->user->id,
                     'name' => $post->user->username,
                     'avatar' => asset('storage/' . $post->user->profile_picture) // Đảm bảo avatar cũng có URL đầy đủ
                 ],

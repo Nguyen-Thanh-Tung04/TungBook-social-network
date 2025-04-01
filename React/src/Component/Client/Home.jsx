@@ -91,7 +91,7 @@ const Home = () => {
             img: "https://randomuser.me/api/portraits/men/1.jpg",
         },
         {
-            name: "Đỗ  Oanh ",
+            name: "Đỗ  Tươi ",
             img: "https://randomuser.me/api/portraits/men/2.jpg",
         },
         {
@@ -104,98 +104,7 @@ const Home = () => {
         },
     ];
 
-    const fakePosts = [
-        {
-            id: 1,
-            user: {
-                name: "Anna Sthesia",
-                avatar: "https://randomuser.me/api/portraits/women/1.jpg"
-            },
-            content: "Lorem ipsum dolor sit amet, consectetur adipiscing elit.",
-            images: ["https://s3.cloud.cmctelecom.vn/tinhte1/2017/12/4205775_C.jpg"],
-            likes: 140,
-            likedBy: [
-                { name: "Trần Minh Điện", avatar: "https://randomuser.me/api/portraits/men/10.jpg", mutualFriends: "1 bạn chung" },
-                { name: "Bùi Thơm", avatar: "https://randomuser.me/api/portraits/women/11.jpg", mutualFriends: "1 bạn chung" },
-                { name: "Đào Huyền", avatar: "https://randomuser.me/api/portraits/women/12.jpg", mutualFriends: null },
-                { name: "Nguyễn Văn B", avatar: "https://randomuser.me/api/portraits/men/15.jpg", mutualFriends: "3 bạn chung" },
-                { name: "Lê Thị C", avatar: "https://randomuser.me/api/portraits/women/16.jpg", mutualFriends: "2 bạn chung" },
-                { name: "Trương Văn D", avatar: "https://randomuser.me/api/portraits/men/17.jpg", mutualFriends: null }
-            ],
-            comments: [
-                {
-                    user: {
-                        name: "John Doe",
-                        avatar: "https://randomuser.me/api/portraits/men/1.jpg"
-                    },
-                    text: "Great post!"
-                },
-                {
-                    user: {
-                        name: "Jane Smith",
-                        avatar: "https://randomuser.me/api/portraits/women/2.jpg"
-                    },
-                    text: "Thanks for sharing!"
-                }
-            ],
-            shares: 99,
-        },
-        {
-            id: 2,
-            user: {
-                name: "Anna Sthesia",
-                avatar: "https://randomuser.me/api/portraits/women/1.jpg"
-            },
-            content: "Lorem ipsum dolor sit amet, consectetur adipiscing elit.",
-            images: [
-                "https://s3.cloud.cmctelecom.vn/tinhte1/2017/12/4205775_C.jpg",
-                "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQOX0ch2n86x0AvHIwRgRABjbyKFDSZCnBpUbseGs2MQr0XDHgthzYVb-iqsfDU0eNil70&usqp=CAU"
-            ],
-            likes: 200, // Fake số like
-            likedBy: [
-                { name: "Lê Minh", avatar: "https://randomuser.me/api/portraits/men/20.jpg", mutualFriends: "2 bạn chung" },
-                { name: "Phạm Hạnh", avatar: "https://randomuser.me/api/portraits/women/21.jpg", mutualFriends: "1 bạn chung" },
-                { name: "Nguyễn An", avatar: "https://randomuser.me/api/portraits/men/22.jpg", mutualFriends: "4 bạn chung" },
-                { name: "Trần Văn C", avatar: "https://randomuser.me/api/portraits/men/23.jpg", mutualFriends: null },
-                { name: "Hoàng My", avatar: "https://randomuser.me/api/portraits/women/24.jpg", mutualFriends: "5 bạn chung" }
-            ],
-            comments: [
-                {
-                    user: {
-                        name: "Alice Johnson",
-                        avatar: "https://randomuser.me/api/portraits/women/3.jpg"
-                    },
-                    text: "This is amazing!"
-                }
-            ],
-            shares: 120,
-        },
-        {
-            id: 3,
-            user: {
-                name: "Anna Sthesia",
-                avatar: "https://randomuser.me/api/portraits/women/1.jpg"
-            },
-            content: "Lorem ipsum dolor sit amet, consectetur adipiscing elit.",
-            images: [
-                "https://s3.cloud.cmctelecom.vn/tinhte1/2017/12/4205775_C.jpg",
-                "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQOX0ch2n86x0AvHIwRgRABjbyKFDSZCnBpUbseGs2MQr0XDHgthzYVb-iqsfDU0eNil70&usqp=CAU",
-                "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQTo0RlA5zJ3VvRDHgKsL1y2hyckhuebXhePOoLWF8fiN8hsBnbgwWaCUsMnbJNxLisZBQ&usqp=CAU"
-            ],
-            likes: 300, // Fake số like
-            likedBy: [
-                { name: "Trịnh Hùng", avatar: "https://randomuser.me/api/portraits/men/30.jpg", mutualFriends: "3 bạn chung" },
-                { name: "Đặng Lan", avatar: "https://randomuser.me/api/portraits/women/31.jpg", mutualFriends: null },
-                { name: "Võ Tuấn", avatar: "https://randomuser.me/api/portraits/men/32.jpg", mutualFriends: "6 bạn chung" },
-                { name: "Mai Thanh", avatar: "https://randomuser.me/api/portraits/women/33.jpg", mutualFriends: "2 bạn chung" },
-                { name: "Ngô Phương", avatar: "https://randomuser.me/api/portraits/women/34.jpg", mutualFriends: "1 bạn chung" },
-                { name: "Dương Đức", avatar: "https://randomuser.me/api/portraits/men/35.jpg", mutualFriends: null }
-            ],
-            comments: [],
-            shares: 150,
-        }
-    ];
-
+ 
     const [selectedPostId, setSelectedPostId] = useState(null);
 
     const [showLikesModal, setShowLikesModal] = useState(false);
@@ -204,8 +113,6 @@ const Home = () => {
         setSelectedPostId(postId);
         setShowLikesModal(true);
     };
-
-    const selectedPost = fakePosts.find(post => post.id === selectedPostId);
 
     const openCommentsModal = (postId) => {
         setSelectedPostId(postId);
@@ -303,6 +210,32 @@ const Home = () => {
             }
         }
     };
+    // Hiển thị ảnh đại diện người dùng
+    const [userData, setUserData] = useState({
+        name: '',
+        avatar_url: '',
+        posts: 0,
+        followers: 0,
+        following: 0,
+    });
+    useEffect(() => {
+        const fetchUserData = async () => {
+            try {
+                const token = localStorage.getItem('authToken');
+                const response = await axios.get('http://127.0.0.1:8000/api/me', {
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                    },
+                });
+                console.log(response.data); // Kiểm tra dữ liệu trả về
+                setUserData(response.data.user);
+            } catch (error) {
+                console.error('Failed to fetch user data', error);
+            }
+        };
+        fetchUserData();
+    }, []);
+
 
 
     return (
@@ -313,7 +246,7 @@ const Home = () => {
                 <div className="bg-white p-4 rounded-lg shadow-md mb-6">
                     <div className="flex items-center">
                         <img
-                            src="https://randomuser.me/api/portraits/men/3.jpg"
+                            src={userData?.avatar_url || 'https://scontent.fhan4-3.fna.fbcdn.net/v/t39.30808-6/430028095_1758861091286933_7708332768369038985_n.jpg?_nc_cat=100&ccb=1-7&_nc_sid=6ee11a&_nc_eui2=AeHe4DTpbgymh3ve45vOO9iOJrbBaxDj87QmtsFrEOPztDUYQ7OYmp0HgJgDKax5xCYXQ4XAE0toaxhN-Keq3fcP&_nc_ohc=StIE3wkzbkIQ7kNvgHZX9fC&_nc_oc=Adk4jWxUg0SCKCbUa-5T2EiIf4_S4rxqfgZwwLKsz0qt9ZlkAIIwESzh0CnwdpuIQK4&_nc_zt=23&_nc_ht=scontent.fhan4-3.fna&_nc_gid=5rVn09AEmF7Qt1jJA3a1lA&oh=00_AYHA91Oda2kvtNjXtwejlCK1m5kJiANeG3t5fY5_SpamxA&oe=67F069EF'}
                             alt="User Avatar"
                             className="w-10 h-10 rounded-full mr-4"
                         />
@@ -620,7 +553,7 @@ const Home = () => {
                     <a href="/story-up">
                         <div className="relative w-24 h-40 bg-gray-300 rounded-lg shadow-md flex flex-col items-center justify-center">
                             <img
-                                src="https://randomuser.me/api/portraits/men/4.jpg"
+                                src={userData?.avatar_url || 'https://scontent.fhan4-3.fna.fbcdn.net/v/t39.30808-6/430028095_1758861091286933_7708332768369038985_n.jpg?_nc_cat=100&ccb=1-7&_nc_sid=6ee11a&_nc_eui2=AeHe4DTpbgymh3ve45vOO9iOJrbBaxDj87QmtsFrEOPztDUYQ7OYmp0HgJgDKax5xCYXQ4XAE0toaxhN-Keq3fcP&_nc_ohc=StIE3wkzbkIQ7kNvgHZX9fC&_nc_oc=Adk4jWxUg0SCKCbUa-5T2EiIf4_S4rxqfgZwwLKsz0qt9ZlkAIIwESzh0CnwdpuIQK4&_nc_zt=23&_nc_ht=scontent.fhan4-3.fna&_nc_gid=5rVn09AEmF7Qt1jJA3a1lA&oh=00_AYHA91Oda2kvtNjXtwejlCK1m5kJiANeG3t5fY5_SpamxA&oe=67F069EF'}
                                 alt="Create Story"
                                 className="w-12 h-12 rounded-full border-2 border-blue-500"
                             />
@@ -795,7 +728,8 @@ const Home = () => {
                         <hr className="my-4" />
 
                         <div className="flex items-center space-x-3">
-                            <img src="https://randomuser.me/api/portraits/women/2.jpg" alt="User" className="w-8 h-8 rounded-full" />
+                            <img src={userData?.avatar_url || 'https://scontent.fhan4-3.fna.fbcdn.net/v/t39.30808-6/430028095_1758861091286933_7708332768369038985_n.jpg?_nc_cat=100&ccb=1-7&_nc_sid=6ee11a&_nc_eui2=AeHe4DTpbgymh3ve45vOO9iOJrbBaxDj87QmtsFrEOPztDUYQ7OYmp0HgJgDKax5xCYXQ4XAE0toaxhN-Keq3fcP&_nc_ohc=StIE3wkzbkIQ7kNvgHZX9fC&_nc_oc=Adk4jWxUg0SCKCbUa-5T2EiIf4_S4rxqfgZwwLKsz0qt9ZlkAIIwESzh0CnwdpuIQK4&_nc_zt=23&_nc_ht=scontent.fhan4-3.fna&_nc_gid=5rVn09AEmF7Qt1jJA3a1lA&oh=00_AYHA91Oda2kvtNjXtwejlCK1m5kJiANeG3t5fY5_SpamxA&oe=67F069EF'}
+                                alt="User" className="w-8 h-8 rounded-full" />
                             <input type="text" placeholder="Enter Your Comment" className="flex-1 bg-gray-100 p-2 rounded-lg text-sm" />
                             <button className="text-gray-500 text-xl"><IoSend /></button>
                         </div>

@@ -7,6 +7,9 @@ import {
     FaLinkedin,
 } from "react-icons/fa"; // Các biểu tượng mạng xã hội
 import axios from "axios";
+import PostForm from "../js/PostForm";
+import ListPostUser from "../js/listPostUser";
+
 
 
 function ProfilePage() {
@@ -26,7 +29,7 @@ function ProfilePage() {
     });
 
     // thông tin cá nhân 
-    const [isModalOpen, setIsModalOpen] = useState(false);
+    const [isInfoModalOpen, setIsInfoModalOpen] = useState(false); // Cho modal thông tin cá nhân
     const [formData, setFormData] = useState({
         title: 'Tùng',
         job: 'Dev',
@@ -34,7 +37,7 @@ function ProfilePage() {
     });
 
     // Toggle modal visibility
-    const toggleModal = () => setIsModalOpen(!isModalOpen);
+    const toggleInfoModal = () => setIsInfoModalOpen(!isInfoModalOpen);
 
     // Handle input changes
     const handleChange = (e) => {
@@ -165,10 +168,10 @@ function ProfilePage() {
     const handleUploadAvatar = async () => {
         const file = fileInputRef.current.files[0];
         if (!file) return;
-    
+
         const formData = new FormData();
         formData.append("avatar", file);
-    
+
         try {
             const token = localStorage.getItem("authToken");
             const response = await axios.post(
@@ -181,12 +184,12 @@ function ProfilePage() {
                     },
                 }
             );
-    
+
             alert("Avatar updated successfully!");
-            
+
             // Cập nhật avatarPreview để hiển thị ảnh mới
             setAvatarPreview(URL.createObjectURL(file));
-    
+
             // Đóng modal
             setIsFileModalOpen(false);
             setIsAvatarModalOpen(false);
@@ -194,9 +197,7 @@ function ProfilePage() {
             console.error("Upload failed", error);
         }
     };
-    
 
-    // Thêm hàm này vào phần code của bạn
     const handleChooseAvatar = () => {
         setIsFileModalOpen(true);
     };
@@ -224,7 +225,63 @@ function ProfilePage() {
     }, []);
 
 
-    // Bài viết 
+    //  đăng Bài viết 
+    const [isPostModalOpen, setIsPostModalOpen] = useState(false); // Cho modal đăng bài viết
+    const [postContent, setPostContent] = useState("");
+    const [files, setFiles] = useState([]);
+    const togglePostModal = () => setIsPostModalOpen(!isPostModalOpen);
+
+
+    const handlePostChange = (e) => {
+        setPostContent(e.target.value);
+    };
+
+    const handleFileChange = (e) => {
+        const selectedFiles = Array.from(e.target.files).filter(
+            (file) => file instanceof File
+        );
+        setFiles(selectedFiles);
+    };
+
+    const handleRemoveImage = (index) => {
+        setFiles((prevFiles) => prevFiles.filter((_, i) => i !== index));
+    };
+
+    const handlePostSubmit = async (e) => {
+        e.preventDefault();
+
+        const formData = new FormData();
+        formData.append("type_id", 1);
+        formData.append("content", postContent);
+
+        files.forEach((file) => {
+            formData.append("files[]", file);
+        });
+
+        const token = localStorage.getItem("authToken");
+
+        try {
+            const response = await axios.post(
+                "http://127.0.0.1:8000/api/posts",
+                formData,
+                {
+                    headers: {
+                        "Content-Type": "multipart/form-data",
+                        Authorization: `Bearer ${token}`,
+                    },
+                }
+            );
+
+            console.log("Response từ server:", response.data);
+            togglePostModal();
+            await fetchPosts();
+        } catch (error) {
+            console.error(
+                "Lỗi khi gửi request:",
+                error.response ? error.response.data : error
+            );
+        }
+    };
 
     return (
         <div className=" bg-gray-100 min-h-fit ">
@@ -233,7 +290,7 @@ function ProfilePage() {
                 <div className="flex items-center">
                     <img
                         ref={avatarRef}
-                        src={avatarPreview || userData?.avatar_url || 'https://via.placeholder.com/150'}
+                        src={avatarPreview || userData?.avatar_url || 'https://scontent.fhan4-3.fna.fbcdn.net/v/t39.30808-6/430028095_1758861091286933_7708332768369038985_n.jpg?_nc_cat=100&ccb=1-7&_nc_sid=6ee11a&_nc_eui2=AeHe4DTpbgymh3ve45vOO9iOJrbBaxDj87QmtsFrEOPztDUYQ7OYmp0HgJgDKax5xCYXQ4XAE0toaxhN-Keq3fcP&_nc_ohc=StIE3wkzbkIQ7kNvgHZX9fC&_nc_oc=Adk4jWxUg0SCKCbUa-5T2EiIf4_S4rxqfgZwwLKsz0qt9ZlkAIIwESzh0CnwdpuIQK4&_nc_zt=23&_nc_ht=scontent.fhan4-3.fna&_nc_gid=5rVn09AEmF7Qt1jJA3a1lA&oh=00_AYHA91Oda2kvtNjXtwejlCK1m5kJiANeG3t5fY5_SpamxA&oe=67F069EF'}
                         alt="User Avatar"
                         className="w-40 h-40 rounded-full border-4 border-white cursor-pointer"
                         onClick={toggleAvatarModal}
@@ -259,7 +316,7 @@ function ProfilePage() {
                     <div className="relative w-auto max-w-5xl">
                         <button onClick={handleCloseImageModal} className="absolute top-2 right-2 text-white text-3xl">&times;</button>
                         <img
-                            src={avatarPreview || userData?.avatar_url || 'https://via.placeholder.com/150'}
+                            src={avatarPreview || userData?.avatar_url || 'https://scontent.fhan4-3.fna.fbcdn.net/v/t39.30808-6/430028095_1758861091286933_7708332768369038985_n.jpg?_nc_cat=100&ccb=1-7&_nc_sid=6ee11a&_nc_eui2=AeHe4DTpbgymh3ve45vOO9iOJrbBaxDj87QmtsFrEOPztDUYQ7OYmp0HgJgDKax5xCYXQ4XAE0toaxhN-Keq3fcP&_nc_ohc=StIE3wkzbkIQ7kNvgHZX9fC&_nc_oc=Adk4jWxUg0SCKCbUa-5T2EiIf4_S4rxqfgZwwLKsz0qt9ZlkAIIwESzh0CnwdpuIQK4&_nc_zt=23&_nc_ht=scontent.fhan4-3.fna&_nc_gid=5rVn09AEmF7Qt1jJA3a1lA&oh=00_AYHA91Oda2kvtNjXtwejlCK1m5kJiANeG3t5fY5_SpamxA&oe=67F069EF'}
                             alt="Avatar Detail"
                             className="w-[800px] h-auto max-h-[90vh] rounded-lg"
                         />
@@ -361,7 +418,7 @@ function ProfilePage() {
                                         <li>{`Học vấn: ${formData.education}`}</li>
                                     </ul>
                                     <button
-                                        onClick={toggleModal}
+                                        onClick={toggleInfoModal}
                                         className="mt-4 bg-gray-600 text-white px-4 py-2 rounded"
                                     >
                                         Chỉnh sửa chi tiết
@@ -369,7 +426,7 @@ function ProfilePage() {
                                 </div>
 
                                 {/* Modal for editing profile */}
-                                {isModalOpen && (
+                                {isInfoModalOpen && (
                                     <div className="fixed inset-0 bg-gray-500 bg-opacity-50 flex justify-center items-center z-50">
                                         <div className="bg-white p-6 rounded-lg w-1/3">
                                             <h3 className="text-xl font-semibold mb-4">Chỉnh sửa chi tiết</h3>
@@ -408,7 +465,7 @@ function ProfilePage() {
                                                 <div className="flex justify-between mt-4">
                                                     <button
                                                         type="button"
-                                                        onClick={toggleModal}
+                                                        onClick={toggleInfoModal}
                                                         className="bg-gray-300 text-black px-4 py-2 rounded"
                                                     >
                                                         Hủy
@@ -488,131 +545,29 @@ function ProfilePage() {
 
                             {/* Content */}
                             <div className="flex-1 p-4 ">
-                                <div className="flex items-center justify-between mb-4 bg-white p-3" >
+
+                                <div className="flex items-center justify-between mb-4 bg-white p-3">
                                     <img
-                                        src="https://randomuser.me/api/portraits/men/1.jpg"
-                                        alt="User"
-                                        className="w-10 h-10 rounded-full"
+                                        src={avatarPreview || userData?.avatar_url || 'https://scontent.fhan4-3.fna.fbcdn.net/v/t39.30808-6/430028095_1758861091286933_7708332768369038985_n.jpg?_nc_cat=100&ccb=1-7&_nc_sid=6ee11a&_nc_eui2=AeHe4DTpbgymh3ve45vOO9iOJrbBaxDj87QmtsFrEOPztDUYQ7OYmp0HgJgDKax5xCYXQ4XAE0toaxhN-Keq3fcP&_nc_ohc=StIE3wkzbkIQ7kNvgHZX9fC&_nc_oc=Adk4jWxUg0SCKCbUa-5T2EiIf4_S4rxqfgZwwLKsz0qt9ZlkAIIwESzh0CnwdpuIQK4&_nc_zt=23&_nc_ht=scontent.fhan4-3.fna&_nc_gid=5rVn09AEmF7Qt1jJA3a1lA&oh=00_AYHA91Oda2kvtNjXtwejlCK1m5kJiANeG3t5fY5_SpamxA&oe=67F069EF'}
+                                        alt="User Avatar"
+                                        className="w-10 h-10 rounded-full mr-4"
                                     />
-                                    <input
-                                        type="text"
-                                        placeholder="Bạn đang nghĩ gì?"
-                                        className="w-full p-2 bg-gray-100 rounded text-sm"
-                                    />
+
+                                    {<PostForm
+                                        isPostModalOpen={isPostModalOpen}
+                                        togglePostModal={togglePostModal}
+                                        postContent={postContent}
+                                        handlePostChange={handlePostChange}
+                                        handlePostSubmit={handlePostSubmit}
+                                        handleFileChange={handleFileChange}
+                                        files={files}
+                                        handleRemoveImage={handleRemoveImage}
+                                    />}
                                 </div>
 
-                                <div className="bg-white p-4 rounded shadow-md ">
-                                    {/* Header */}
-                                    <div className="flex items-center mb-4">
-                                        <img
-                                            src="https://randomuser.me/api/portraits/men/1.jpg"
-                                            alt="User"
-                                            className="w-10 h-10 rounded-full"
-                                        />
-                                        <div className="ml-3">
-                                            <h4 className="text-sm font-medium text-gray-800">
-                                                Nguyễn Thanh Tùng
-                                            </h4>
-                                            <p className="text-xs text-gray-500">
-                                                Add New Post · 3 hour ago
-                                            </p>
-                                        </div>
-                                    </div>
+                                {/* Bài viết  */}
+                                <ListPostUser userData={userData} autoFetch={true} />
 
-                                    {/* Image */}
-                                    <div className="flex justify-center" >
-                                        <img
-                                            src="https://phunugioi.com/wp-content/uploads/2020/04/nhung-hinh-anh-dep-ve-que-huong-dat-nuoc-con-nguoi-viet-nam.jpg"
-                                            alt="Post"
-                                            className=" object-contain rounded mb-4"
-                                        />
-                                    </div>
-
-                                    {/* Like, Comment, Share */}
-                                    <div className="flex justify-between items-center text-gray-600 text-sm">
-                                        <div className="flex space-x-2">
-                                            <button className="flex items-center space-x-1">
-                                                <span>👍</span>
-                                                <span>140 Likes</span>
-                                            </button>
-                                            <button className="flex items-center space-x-1">
-                                                <span>💬</span>
-                                                <span>20 Comments</span>
-                                            </button>
-                                        </div>
-                                        <button className="flex items-center space-x-1">
-                                            <span>🔗</span>
-                                            <span>99 Shares</span>
-                                        </button>
-                                    </div>
-
-                                    <hr className="my-4" />
-
-                                    {/* Comments */}
-                                    <div className="space-y-4">
-                                        <div className="flex items-start space-x-3">
-                                            <img
-                                                src="https://randomuser.me/api/portraits/men/13.jpg"
-                                                alt="User"
-                                                className="w-8 h-8 rounded-full"
-                                            />
-                                            <div>
-                                                <h5 className="text-sm font-medium text-gray-800">
-                                                    Monty Carlo
-                                                </h5>
-                                                <p className="text-xs text-gray-600">
-                                                    Anh Tùng đẹp trai
-                                                </p>
-                                                <div className="text-xs text-gray-500 flex space-x-2 mt-1">
-                                                    <button>Like</button>
-                                                    <button>Reply</button>
-                                                    <button>Translate</button>
-                                                    <span>5 min</span>
-                                                </div>
-                                            </div>
-                                        </div>
-
-                                        <div className="flex items-start space-x-3">
-                                            <img
-                                                src="https://randomuser.me/api/portraits/men/77.jpg"
-                                                alt="User"
-                                                className="w-8 h-8 rounded-full"
-                                            />
-                                            <div>
-                                                <h5 className="text-sm font-medium text-gray-800">
-                                                    Paul Molive
-                                                </h5>
-                                                <p className="text-xs text-gray-600">
-                                                    Anh Tùng đẹp trai
-                                                </p>
-                                                <div className="text-xs text-gray-500 flex space-x-2 mt-1">
-                                                    <button>Like</button>
-                                                    <button>Reply</button>
-                                                    <button>Translate</button>
-                                                    <span>5 min</span>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    <hr className="my-4" />
-
-                                    {/* Add Comment */}
-                                    <div className="flex items-center space-x-3">
-                                        <img
-                                            src="https://randomuser.me/api/portraits/men/13.jpg"
-                                            alt="User"
-                                            className="w-8 h-8 rounded-full"
-                                        />
-                                        <input
-                                            type="text"
-                                            placeholder="Enter Your Comment"
-                                            className="flex-1 bg-gray-100 p-2 rounded text-sm"
-                                        />
-                                        <button>📎</button>
-                                        <button>😊</button>
-                                    </div>
-                                </div>
                             </div>
                         </div>
                     </div>
