@@ -47,3 +47,11 @@ Route::post('shares', [ShareController::class, 'store']);
 // cập nhật avatar
 Route::middleware('auth:sanctum')->post('/user/avatar', [AuthController::class, 'updateAvatar']);
 Route::middleware('auth:sanctum')->get('/me', [AuthController::class, 'me']);
+
+// Reaction
+Route::middleware('auth:sanctum')->group(function () {
+    Route::post('/reactions', [ReactionController::class, 'react']);
+    Route::delete('/reactions/post/{postId}', [ReactionController::class, 'destroyByPost']);
+});
+
+Route::get('/posts/{id}/likes', [ReactionController::class, 'getLikes']);

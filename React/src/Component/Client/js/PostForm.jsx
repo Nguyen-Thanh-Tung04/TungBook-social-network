@@ -9,7 +9,8 @@ const PostModal = ({
   handlePostSubmit,
   handleFileChange,
   files,
-  handleRemoveImage
+  handleRemoveImage,
+  userData
 }) => {
   return (
     <div className="relative w-full ">
@@ -37,8 +38,8 @@ const PostModal = ({
             </button>
             <div className="flex items-center mb-4">
               <img
-                src="https://randomuser.me/api/portraits/men/1.jpg"
-                alt="User"
+                    src={userData?.avatar_url }
+                    alt="User"
                 className="w-10 h-10 rounded-full"
               />
               <div className="ml-3">

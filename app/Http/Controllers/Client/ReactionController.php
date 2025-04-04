@@ -1,31 +1,75 @@
 <?php
-
 namespace App\Http\Controllers\Client;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
+use App\Models\Post;
 use App\Models\Reaction;
 
 class ReactionController extends Controller
 {
-    public function store(Request $request)
+    // Người dùng thả hoặc thay đổi cảm xúc
+    public function react(Request $request)
     {
-        $validated = $request->validate([
-            'user_id' => 'required|exists:users,id',
+        $request->validate([
             'post_id' => 'required|exists:posts,id',
             'reaction_type' => 'required|string|max:50',
         ]);
 
-        $reaction = Reaction::create($validated);
+        $userId = Auth::id();
 
-        return response()->json($reaction, 201);
+        $reaction = Reaction::updateOrCreate(
+            ['user_id' => $userId, 'post_id' => $request->post_id],
+            ['reaction_type' => $request->reaction_type]
+        );
+
+        return response()->json([
+            'success' => true,
+            'reaction' => $reaction
+        ]);
     }
 
-    public function destroy($id)
+    // Gỡ bỏ cảm xúc
+    public function destroyByPost($postId)
     {
-        $reaction = Reaction::findOrFail($id);
-        $reaction->delete();
+        $userId = Auth::id();
 
-        return response()->json(['message' => 'Reaction removed successfully']);
+        $reaction = Reaction::where('user_id', $userId)
+            ->where('post_id', $postId)
+            ->first();
+
+        if ($reaction) {
+            $reaction->delete();
+            return response()->json(['message' => 'Reaction removed']);
+        }
+
+        return response()->json(['message' => 'No reaction found'], 404);
     }
-} 
+
+    // Lấy danh sách người dùng đã "like"
+    public function getLikes($postId)
+    {
+        $reactions = Reaction::with('user:id,username,profile_picture')
+            ->where('post_id', $postId)
+            ->where('reaction_type', 'like')
+            ->get();
+
+        $likedBy = $reactions->map(function ($reaction) {
+            return [
+                'id' => $reaction->user->id,
+                'name' => $reaction->user->username,
+                'avatar' => asset('storage/' . $reaction->user->profile_picture),
+                'liked_at' => $reaction->created_at->toDateTimeString(),
+                'mutualFriends' => null,
+            ];
+        });
+
+        return response()->json([
+            'post_id' => $postId,
+            'likes' => $likedBy->count(),
+            'likedBy' => $likedBy,
+        ]);
+    }
+}

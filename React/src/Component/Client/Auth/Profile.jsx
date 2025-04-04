@@ -215,7 +215,7 @@ function ProfilePage() {
                         'Authorization': `Bearer ${token}`,
                     },
                 });
-                console.log(response.data); // Kiểm tra dữ liệu trả về
+                // console.log(response.data); // Kiểm tra dữ liệu trả về
                 setUserData(response.data.user);
             } catch (error) {
                 console.error('Failed to fetch user data', error);
@@ -246,6 +246,27 @@ function ProfilePage() {
     const handleRemoveImage = (index) => {
         setFiles((prevFiles) => prevFiles.filter((_, i) => i !== index));
     };
+
+    // Fetch bài viết
+    const [posts, setPosts] = useState([]);
+
+    const fetchPosts = async () => {
+        const token = localStorage.getItem('authToken');
+        try {
+            const response = await axios.get('http://127.0.0.1:8000/api/posts', {
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                },
+            });
+            setPosts(response.data);
+        } catch (error) {
+            console.error('Error fetching posts:', error);
+        }
+    };
+
+    useEffect(() => {
+        fetchPosts(); // ✅ Gọi sau khi khai báo
+    }, []);
 
     const handlePostSubmit = async (e) => {
         e.preventDefault();
@@ -562,11 +583,17 @@ function ProfilePage() {
                                         handleFileChange={handleFileChange}
                                         files={files}
                                         handleRemoveImage={handleRemoveImage}
+                                        userData={userData}
                                     />}
                                 </div>
 
                                 {/* Bài viết  */}
-                                <ListPostUser userData={userData} autoFetch={true} />
+                                <ListPostUser
+                                    userData={userData}
+                                    posts={posts}
+                                    setPosts={setPosts}
+                                    autoFetch={false}
+                                />
 
                             </div>
                         </div>

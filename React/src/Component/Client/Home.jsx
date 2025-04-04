@@ -104,15 +104,78 @@ const Home = () => {
         },
     ];
 
- 
+
     const [selectedPostId, setSelectedPostId] = useState(null);
-
     const [showLikesModal, setShowLikesModal] = useState(false);
+    const [selectedPost, setSelectedPost] = useState(null); // <-- chứa dữ liệu real
 
-    const openLikesModal = (postId) => {
+    const dummyPostsData = [
+        {
+            id: 1,
+            likes: 3,
+            likedBy: [
+                {
+                    name: "Nguyễn Hữu An",
+                    avatar: "https://i.pravatar.cc/150?img=8",
+                    mutualFriends: "2 bạn chung",
+                },
+                {
+                    name: "Nam Tép",
+                    avatar: "https://i.pravatar.cc/150?img=12",
+                },
+                {
+                    name: "Nguyễn Kuồng",
+                    avatar: "https://i.pravatar.cc/150?img=25",
+                },
+            ],
+        },
+    ];
+
+    const openLikesModal = async (postId) => {
         setSelectedPostId(postId);
         setShowLikesModal(true);
+
+        try {
+            // ✅ Gọi đúng địa chỉ Laravel API
+            const res = await axios.get(`http://127.0.0.1:8000/api/posts/${postId}/likes`, {
+                headers: {
+                    Accept: 'application/json',
+                    Authorization: `Bearer ${localStorage.getItem('authToken')}`, // ← đảm bảo gửi token
+                },
+            });
+
+
+            // console.log("✅ Dữ liệu từ API:", res.data);
+
+            if (res.data && Array.isArray(res.data.likedBy)) {
+                const baseStorageUrl = "http://127.0.0.1:8000/storage/";
+
+                // ✅ Gắn avatar đúng path
+                const likedBy = res.data.likedBy.map((user) => ({
+                    ...user,
+                    avatar: user.avatar?.startsWith("http")
+                        ? user.avatar
+                        : baseStorageUrl + user.avatar,
+                }));
+
+                // ✅ Lưu dữ liệu post được chọn
+                setSelectedPost({
+                    post_id: res.data.post_id,
+                    likes: res.data.likes,
+                    likedBy,
+                });
+            } else {
+                console.warn("❗API không trả về likedBy hợp lệ:", res.data);
+                setSelectedPost({ post_id: postId, likes: 0, likedBy: [] });
+            }
+        } catch (error) {
+            console.error("❌ Lỗi khi gọi API getLikes:", error.message || error);
+            alert("Lỗi mạng: Không kết nối được đến server!");
+            setSelectedPost({ post_id: postId, likes: 0, likedBy: [] });
+        }
     };
+
+
 
     const openCommentsModal = (postId) => {
         setSelectedPostId(postId);
@@ -135,6 +198,7 @@ const Home = () => {
     useEffect(() => {
         fetchPosts();
     }, []);
+
     const fetchPosts = async () => {
         const token = localStorage.getItem('authToken');
         try {
@@ -143,11 +207,32 @@ const Home = () => {
                     Authorization: `Bearer ${token}`,
                 },
             });
-            setPosts(response.data);
+
+            const fetchedPosts = response.data;
+
+            setPosts(fetchedPosts); // ✅ cập nhật danh sách post
+            
+            const reactionMap = {};
+            fetchedPosts.forEach(post => {
+                if (post.user_reaction) {
+                    reactionMap[post.id] = post.user_reaction;
+                }
+            });
+            setPostReactions(reactionMap); // ✅ đồng bộ cảm xúc hiện tại vào state
+
+
+            // ✅ cập nhật reaction_summary theo từng bài
+            setPostSummaries(
+                fetchedPosts.reduce((acc, post) => {
+                    acc[post.id] = post.reaction_summary || {};
+                    return acc;
+                }, {})
+            );
         } catch (error) {
             console.error('Error fetching posts:', error);
         }
     };
+
 
     // dấu 3 chấm bài viết 
     const [openPostOptionsId, setOpenPostOptionsId] = useState(null);
@@ -227,7 +312,7 @@ const Home = () => {
                         'Authorization': `Bearer ${token}`,
                     },
                 });
-                console.log(response.data); // Kiểm tra dữ liệu trả về
+                // console.log(response.data); // Kiểm tra dữ liệu trả về
                 setUserData(response.data.user);
             } catch (error) {
                 console.error('Failed to fetch user data', error);
@@ -235,6 +320,94 @@ const Home = () => {
         };
         fetchUserData();
     }, []);
+
+    // Hiển thị menu cảm xúc
+    const [hoveredPostId, setHoveredPostId] = useState(null);
+    const [postReactions, setPostReactions] = useState({});
+    const [activeReactionPostId, setActiveReactionPostId] = useState(null);
+    const [postSummaries, setPostSummaries] = useState({});
+
+
+    const reactionTypes = {
+        like: '👍',
+        love: '❤️',
+        care: '🥰',
+        haha: '😆',
+        wow: '😮',
+        sad: '😢',
+        angry: '😡',
+    };
+
+    const mapIconToType = (icon) => {
+        const entry = Object.entries(reactionTypes).find(([, emoji]) => emoji === icon);
+        return entry ? entry[0] : 'like';
+    };
+    const handleReactionClick = async (icon, postId) => {
+        const reactionType = mapIconToType(icon);
+        const currentReaction = postReactions[postId];
+
+        setHoveredPostId(null);
+
+        // Nếu người dùng bấm lại cảm xúc đã chọn → gỡ bỏ reaction
+        if (currentReaction === reactionType) {
+            setPostReactions((prev) => ({ ...prev, [postId]: null }));
+            setActiveReactionPostId(postId);
+            setTimeout(() => setActiveReactionPostId(null), 600);
+
+            try {
+                await axios.delete(`http://127.0.0.1:8000/api/reactions/post/${postId}`, {
+                    headers: {
+                        Accept: 'application/json',
+                        Authorization: `Bearer ${localStorage.getItem('authToken')}`,
+                    },
+                });
+                console.log('Đã gỡ reaction');
+            } catch (error) {
+                console.error('Lỗi khi gỡ reaction:', error.response?.data || error.message);
+            }
+
+            return;
+        }
+
+        // Ngược lại: tạo hoặc cập nhật cảm xúc
+        setPostReactions((prev) => ({ ...prev, [postId]: reactionType }));
+
+        setPostSummaries((prev) => {
+            const prevSummary = prev[postId] || {};
+            const currentReaction = postReactions[postId];
+
+            const updated = { ...prevSummary };
+
+            // Nếu có cảm xúc cũ → giảm
+            if (currentReaction && updated[currentReaction] > 0) {
+                updated[currentReaction] -= 1;
+            }
+
+            // Nếu là cảm xúc mới → tăng
+            updated[reactionType] = (updated[reactionType] || 0) + 1;
+
+            return { ...prev, [postId]: updated };
+        });
+        setActiveReactionPostId(postId);
+        setTimeout(() => setActiveReactionPostId(null), 600);
+
+        try {
+            const res = await axios.post('http://127.0.0.1:8000/api/reactions', {
+                post_id: postId,
+                reaction_type: reactionType,
+            }, {
+                headers: {
+                    Accept: 'application/json',
+                    Authorization: `Bearer ${localStorage.getItem('authToken')}`,
+                },
+            });
+
+            console.log('Gửi cảm xúc thành công:', res.data);
+        } catch (error) {
+            console.error('Lỗi khi gửi reaction:', error.response?.data || error.message);
+        }
+    };
+
 
 
 
@@ -278,7 +451,7 @@ const Home = () => {
                                         </button>
                                         <div className="flex items-center mb-4">
                                             <img
-                                                src="https://randomuser.me/api/portraits/men/1.jpg"
+                                                src={userData?.avatar_url}
                                                 alt="User"
                                                 className="w-10 h-10 rounded-full"
                                             />
@@ -692,47 +865,96 @@ const Home = () => {
                             </div>
                         )}
 
+                        {/* Cảm xúc tổng hợp */}
                         <div className="flex justify-between items-center text-gray-600 text-sm mt-4">
-                            <div className="flex space-x-4">
-                                <button onClick={() => openLikesModal(post.id)} className="text-blue-500 font-semibold">
-                                    👍 {post.likes} Likes
-                                </button>
-                                <button onClick={() => openCommentsModal(post.id)}>
-                                    💬 {post.comments?.length || 0} Comments
-                                </button>
+                            <div
+                                className="flex items-center space-x-1 cursor-pointer"
+                                onClick={() => openLikesModal(post.id)}
+                            >
+                                {Object.entries(postSummaries[post.id] || {}).map(([type, count]) =>
+                                    count > 0 && <span key={type} className="text-xl">{reactionTypes[type]}</span>
+                                )}
+                                <span className="text-sm font-medium">
+                                    {Object.values(postSummaries[post.id] || {}).reduce((a, b) => a + b, 0)}
+                                </span>
+
                             </div>
-                            <button className="flex items-center space-x-1">
-                                🔗 {post.shares} Shares
+
+
+                            <div className="flex space-x-2 text-gray-500 text-sm">
+                                <span className="flex items-center space-x-1">💬 <span>{post.comments?.length || 0}</span></span>
+                                <span className="flex items-center space-x-1">🔁 <span>{post.shares}</span></span>
+                            </div>
+                        </div>
+
+                        {/* Nút Thích - Bình luận - Chia sẻ */}
+                        <div className="flex justify-around items-center text-gray-600 text-sm mt-2 border-t pt-2">
+                            <div
+                                className="relative flex-1 flex justify-center"
+                                onPointerEnter={() => setHoveredPostId(post.id)}
+                                onPointerLeave={() => setHoveredPostId(null)}
+                            >
+                                <button
+                                    onClick={() => {
+                                        const currentReaction = postReactions[post.id];
+                                        if (currentReaction) {
+                                            handleReactionClick(reactionTypes[currentReaction], post.id); // gỡ
+                                        } else {
+                                            handleReactionClick('👍', post.id); // chưa có → like
+                                        }
+                                    }}
+                                    className={`flex items-center space-x-1 font-semibold transition 
+    ${postReactions[post.id] ? 'text-blue-600' : 'text-gray-600 hover:text-blue-500'}`}
+                                >
+                                    <span
+                                        className={`text-xl transition-transform duration-500 ease-out 
+    ${activeReactionPostId === post.id ? 'scale-150' : 'scale-100'}`}
+                                    >
+                                        {reactionTypes[postReactions[post.id]] || '👍'}
+                                    </span>
+
+                                    <span>
+                                        {postReactions[post.id]
+                                            ? {
+                                                like: 'Thích',
+                                                love: 'Yêu thích',
+                                                care: 'Quan tâm',
+                                                haha: 'Haha',
+                                                wow: 'Wow',
+                                                sad: 'Buồn',
+                                                angry: 'Phẫn nộ',
+                                            }[postReactions[post.id]]
+                                            : 'Thích'}
+                                    </span>
+                                </button>
+
+
+                                {/* Hover menu cảm xúc */}
+                                <div className={`absolute -top-16 left-1/2 -translate-x-1/2 flex justify-start text-2xl items-center shadow-xl z-10 bg-white dark:bg-[#191818] gap-2 p-2 rounded-full transition-all duration-300 ${hoveredPostId === post.id ? 'opacity-100 visible' : 'opacity-0 invisible'
+                                    }`}>
+                                    {Object.values(reactionTypes).map((icon, index) => (
+                                        <button
+                                            key={index}
+                                            className="hover:scale-125 transition-transform rounded-full w-10 h-10 flex items-center justify-center shadow text-xl"
+                                            onClick={() => handleReactionClick(icon, post.id)}
+                                        >
+                                            {icon}
+                                        </button>
+                                    ))}
+                                </div>
+                            </div>
+
+                            {/* Bình luận */}
+                            <button onClick={() => openCommentsModal(post.id)} className="flex-1 flex justify-center items-center space-x-1 font-semibold">
+                                <span>💬</span><span>Bình luận</span>
+                            </button>
+
+                            {/* Chia sẻ */}
+                            <button className="flex-1 flex justify-center items-center space-x-1 font-semibold">
+                                <span>🔁</span><span>Chia sẻ</span>
                             </button>
                         </div>
 
-                        <hr className="my-4" />
-
-                        <div className="space-y-3">
-                            {post.comments?.slice(0, 2).map((comment, index) => (
-                                <div key={index} className="flex items-start space-x-3">
-                                    <img src={comment.user.avatar} alt="User" className="w-8 h-8 rounded-full" />
-                                    <div>
-                                        <h5 className="text-sm font-medium text-gray-800">{comment.user.name}</h5>
-                                        <p className="text-xs text-gray-600">{comment.text}</p>
-                                    </div>
-                                </div>
-                            ))}
-                            {post.comments?.length > 2 && (
-                                <button className="text-blue-500 text-sm mt-2" onClick={() => openCommentsModal(post.id)}>
-                                    Xem thêm bình luận...
-                                </button>
-                            )}
-                        </div>
-
-                        <hr className="my-4" />
-
-                        <div className="flex items-center space-x-3">
-                            <img src={userData?.avatar_url || 'https://scontent.fhan4-3.fna.fbcdn.net/v/t39.30808-6/430028095_1758861091286933_7708332768369038985_n.jpg?_nc_cat=100&ccb=1-7&_nc_sid=6ee11a&_nc_eui2=AeHe4DTpbgymh3ve45vOO9iOJrbBaxDj87QmtsFrEOPztDUYQ7OYmp0HgJgDKax5xCYXQ4XAE0toaxhN-Keq3fcP&_nc_ohc=StIE3wkzbkIQ7kNvgHZX9fC&_nc_oc=Adk4jWxUg0SCKCbUa-5T2EiIf4_S4rxqfgZwwLKsz0qt9ZlkAIIwESzh0CnwdpuIQK4&_nc_zt=23&_nc_ht=scontent.fhan4-3.fna&_nc_gid=5rVn09AEmF7Qt1jJA3a1lA&oh=00_AYHA91Oda2kvtNjXtwejlCK1m5kJiANeG3t5fY5_SpamxA&oe=67F069EF'}
-                                alt="User" className="w-8 h-8 rounded-full" />
-                            <input type="text" placeholder="Enter Your Comment" className="flex-1 bg-gray-100 p-2 rounded-lg text-sm" />
-                            <button className="text-gray-500 text-xl"><IoSend /></button>
-                        </div>
                     </div>
                 ))}
 
@@ -758,30 +980,43 @@ const Home = () => {
                         </div>
                     </div>
                 )}
-
                 {showLikesModal && selectedPost && (
-                    <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50"
-                        onClick={() => setShowLikesModal(false)}>
-                        <div className="bg-white w-full max-w-md rounded-lg shadow-lg overflow-hidden"
-                            onClick={(e) => e.stopPropagation()}>
-
+                    <div
+                        className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50"
+                        onClick={() => setShowLikesModal(false)}
+                    >
+                        <div
+                            className="bg-white w-full max-w-md rounded-lg shadow-lg overflow-hidden"
+                            onClick={(e) => e.stopPropagation()}
+                        >
                             {/* Header */}
                             <div className="flex justify-between items-center p-4 border-b">
-                                <h2 className="text-lg font-semibold">{selectedPost?.likes} người đã thích</h2>
-                                <button className="text-gray-500 hover:text-gray-800"
-                                    onClick={() => setShowLikesModal(false)}>✕</button>
+                                <h2 className="text-lg font-semibold">
+                                    {selectedPost.likes} người đã thích
+                                </h2>
+                                <button
+                                    className="text-gray-500 hover:text-gray-800 text-xl"
+                                    onClick={() => setShowLikesModal(false)}
+                                >
+                                    ✕
+                                </button>
                             </div>
 
-                            {/* Danh sách */}
+                            {/* Danh sách người like */}
                             <div className="p-4 max-h-80 overflow-y-auto space-y-4">
-                                {selectedPost?.likedBy?.map((user, index) => (
-                                    <div key={index} className="flex justify-between items-center">
+                                {selectedPost.likedBy.map((user, index) => (
+                                    <div
+                                        key={index}
+                                        className="flex justify-between items-center hover:bg-gray-100 p-2 rounded-lg"
+                                    >
                                         <div className="flex items-center space-x-3">
-                                            <img src={user.avatar} alt="User Avatar"
-                                                className="w-10 h-10 rounded-full border border-gray-300" />
+                                            <img
+                                                src={user.avatar}
+                                                alt={user.name}
+                                                className="w-10 h-10 rounded-full border border-gray-300 object-cover"
+                                            />
                                             <div>
                                                 <h5 className="text-sm font-medium text-gray-800">{user.name}</h5>
-                                                {user.mutualFriends && <p className="text-xs text-gray-600">{user.mutualFriends}</p>}
                                             </div>
                                         </div>
                                         <button className="bg-blue-500 text-white px-3 py-1 rounded-full text-xs hover:bg-blue-600">
@@ -793,6 +1028,8 @@ const Home = () => {
                         </div>
                     </div>
                 )}
+
+
                 {showCommentsModal && selectedPost && (
                     <div className="fixed inset-0 bg-black bg-opacity-75 flex justify-center items-center z-50" onClick={() => setShowCommentsModal(false)}>
                         <div className="bg-white rounded-lg w-[700px] max-h-[90vh] overflow-hidden shadow-lg flex flex-col" onClick={(e) => e.stopPropagation()}>

@@ -17,6 +17,7 @@ use Illuminate\Support\Facades\Storage;
 
 class PostController extends Controller
 {
+    
     public function index()
     {
         $posts = Post::with([
@@ -27,25 +28,34 @@ class PostController extends Controller
         ])->latest()->get();
     
         $formattedPosts = $posts->map(function ($post) {
+            $currentUser = Auth::user();
+    
+            // ✅ Tìm cảm xúc hiện tại của người dùng (nếu có)
+            $userReaction = $post->reactions->firstWhere('user_id', $currentUser?->id)?->reaction_type;
+    
+            // ✅ Tổng hợp loại cảm xúc
+            $reactionSummary = $post->reactions()
+                ->select('reaction_type', DB::raw('count(*) as count'))
+                ->groupBy('reaction_type')
+                ->pluck('count', 'reaction_type');
+    
             return [
                 'id' => $post->id,
                 'user' => [
                     'id' => $post->user->id,
                     'name' => $post->user->username,
-                    'avatar' => asset('storage/' . $post->user->profile_picture) // Đảm bảo avatar cũng có URL đầy đủ
+                    'avatar' => asset('storage/' . $post->user->profile_picture),
                 ],
                 'content' => $post->content,
-                'images' => $post->media->map(function ($media) {
-                    return asset('storage/' . $media->file_path);
-                })->toArray(),
+                'images' => $post->media->map(fn($m) => asset('storage/' . $m->file_path))->toArray(),
                 'likes' => $post->reactions->count(),
-                'likedBy' => $post->reactions->take(5)->map(function ($reaction) {
-                    return [
-                        'name' => $reaction->user->username,
-                        'avatar' => asset('storage/' . $reaction->user->profile_picture),
-                        'mutualFriends' => null // Logic để lấy mutual friends nếu cần
-                    ];
-                }),
+                'reaction_summary' => $reactionSummary,
+                'user_reaction' => $userReaction, // ✅ dòng mới
+                'likedBy' => $post->reactions->take(5)->map(fn($reaction) => [
+                    'name' => $reaction->user->username,
+                    'avatar' => asset('storage/' . $reaction->user->profile_picture),
+                    'mutualFriends' => null,
+                ]),
                 'shares' => $post->shares->count(),
             ];
         });
@@ -53,7 +63,8 @@ class PostController extends Controller
         return response()->json($formattedPosts);
     }
     
-
+    
+    
     public function update(Request $request, $id)
     {
         try {

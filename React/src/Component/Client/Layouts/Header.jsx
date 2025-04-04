@@ -27,7 +27,7 @@ const Header = () => {
             'Authorization': `Bearer ${token}`,
           },
         });
-        console.log(response.data); // Kiểm tra dữ liệu trả về
+        // console.log(response.data); // Kiểm tra dữ liệu trả về
         setUserData(response.data.user);
       } catch (error) {
         console.error('Failed to fetch user data', error);
