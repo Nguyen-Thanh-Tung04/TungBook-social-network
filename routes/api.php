@@ -8,6 +8,7 @@ use App\Http\Controllers\Client\AuthController;
 use App\Http\Controllers\Client\PostController;
 use App\Http\Controllers\Client\ReactionController;
 use App\Http\Controllers\Client\ShareController;
+use App\Http\Controllers\Client\CommentController;
 
 /*
 |--------------------------------------------------------------------------
@@ -38,6 +39,8 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/posts', [PostController::class, 'store']);
     Route::get('/posts', [PostController::class, 'index']);
     Route::delete('/posts/{id}', [PostController::class, 'destroy']); // Thêm route xóa bài viết
+    Route::get('/posts/{id}', [PostController::class, 'show']); 
+
 });
 // Không cần prefix 'api' vì đã được Laravel tự động thêm
 Route::post('reactions', [ReactionController::class, 'store']);
@@ -55,3 +58,10 @@ Route::middleware('auth:sanctum')->group(function () {
 });
 
 Route::get('/posts/{id}/likes', [ReactionController::class, 'getLikes']);
+
+Route::middleware('auth:sanctum')->group(function () {
+    Route::post('/comments', [CommentController::class, 'store']);
+    Route::put('/comments/{id}', [CommentController::class, 'update']); // ✅ Route update
+
+}); 
+Route::delete('/comments/{id}', [CommentController::class, 'destroy']);

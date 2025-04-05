@@ -57,4 +57,8 @@ class User extends Authenticatable
     {
         return $this->belongsTo(Role::class); // Định nghĩa quan hệ với bảng roles
     }
+    public function comments()
+    {
+        return $this->hasMany(Comment::class);
+    }
 }

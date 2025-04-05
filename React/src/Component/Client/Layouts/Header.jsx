@@ -27,7 +27,10 @@ const Header = () => {
             'Authorization': `Bearer ${token}`,
           },
         });
-        // console.log(response.data); // Kiểm tra dữ liệu trả về
+        // ✅ Lưu ID user vào localStorage để dùng sau
+        localStorage.setItem("userId", response.data.user.id);
+
+        // ✅ Gán vào state để hiển thị
         setUserData(response.data.user);
       } catch (error) {
         console.error('Failed to fetch user data', error);

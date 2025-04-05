@@ -17,14 +17,14 @@ use Illuminate\Support\Facades\Storage;
 
 class PostController extends Controller
 {
-    
     public function index()
     {
         $posts = Post::with([
             'user:id,username,profile_picture',
             'media:id,file_path',
             'reactions.user:id,username,profile_picture',
-            'shares.user:id,username,profile_picture'
+            'shares.user:id,username,profile_picture',
+            'comments:id,post_id' // ✅ Thêm quan hệ comments để đếm
         ])->latest()->get();
     
         $formattedPosts = $posts->map(function ($post) {
@@ -37,7 +37,10 @@ class PostController extends Controller
             $reactionSummary = $post->reactions()
                 ->select('reaction_type', DB::raw('count(*) as count'))
                 ->groupBy('reaction_type')
-                ->pluck('count', 'reaction_type');
+                ->pluck('count', 'reaction_type')
+                ->toArray();
+    
+            $reactionSummary = count($reactionSummary) > 0 ? $reactionSummary : (object)[];
     
             return [
                 'id' => $post->id,
@@ -50,21 +53,23 @@ class PostController extends Controller
                 'images' => $post->media->map(fn($m) => asset('storage/' . $m->file_path))->toArray(),
                 'likes' => $post->reactions->count(),
                 'reaction_summary' => $reactionSummary,
-                'user_reaction' => $userReaction, // ✅ dòng mới
+                'user_reaction' => $userReaction,
                 'likedBy' => $post->reactions->take(5)->map(fn($reaction) => [
                     'name' => $reaction->user->username,
                     'avatar' => asset('storage/' . $reaction->user->profile_picture),
                     'mutualFriends' => null,
                 ]),
                 'shares' => $post->shares->count(),
+                'comments_count' => $post->comments->count(), // ✅ Tổng số bình luận
             ];
         });
     
         return response()->json($formattedPosts);
     }
     
-    
-    
+
+
+
     public function update(Request $request, $id)
     {
         try {
@@ -140,17 +145,68 @@ class PostController extends Controller
             }]),
         ], 201);
     }
-
     public function show($id)
     {
-        return response()->json(Post::with('user')->findOrFail($id));
+        $post = Post::with([
+            'user:id,username,profile_picture',
+            'media:id,file_path',
+            'comments' => function ($query) {
+                $query->orderBy('created_at');
+            },
+            'comments.user:id,username,profile_picture',
+            'comments.replies.user:id,username,profile_picture',
+            'comments.replies.replies.user:id,username,profile_picture',
+            'comments.replies.replies.replies.user:id,username,profile_picture',
+        ])->findOrFail($id);
+    
+        $comments = $post->comments;
+    
+        // Nhóm comments theo parent_id
+        $grouped = $comments->groupBy('parent_id');
+    
+        // Đệ quy định dạng comment
+        $formatComment = function ($comment) use (&$grouped, &$formatComment) {
+            return [
+                'id' => $comment->id,
+                'content' => $comment->content,
+                'created_at' => $comment->created_at,
+                'user' => [
+                    'id' => $comment->user->id,
+                    'name' => $comment->user->username,
+                    'avatar' => asset('storage/' . $comment->user->profile_picture),
+                ],
+                'replies' => collect($grouped[$comment->id] ?? [])
+                    ->sortBy('created_at')
+                    ->map($formatComment)
+                    ->values()
+            ];
+        };
+    
+        // Format danh sách comment gốc (parent_id = null)
+        $commentsFormatted = collect($grouped[null] ?? [])
+            ->sortBy('created_at')
+            ->map($formatComment)
+            ->values();
+    
+        return response()->json([
+            'id' => $post->id,
+            'user' => [
+                'id' => $post->user->id,
+                'name' => $post->user->username,
+                'avatar' => asset('storage/' . $post->user->profile_picture)
+            ],
+            'content' => $post->content,
+            'images' => $post->media->map(fn($m) => asset('storage/' . $m->file_path))->toArray(),
+            'comments' => $commentsFormatted,
+        ]);
     }
+    
 
     public function destroy($id)
     {
         try {
             $post = Post::findOrFail($id);
-    
+
             // Xóa media liên quan
             foreach ($post->media as $media) {
                 // Xóa file trong storage
@@ -158,21 +214,20 @@ class PostController extends Controller
                 // Xóa bản ghi trong bảng media
                 $media->delete();
             }
-    
+
             // Xóa bản ghi trong bảng post_media
             PostMedia::where('post_id', $id)->delete();
-    
+
             // Xóa các liên kết khác nếu cần (reactions, shares, v.v.)
             $post->reactions()->delete();
             $post->shares()->delete();
-    
+
             // Cuối cùng, xóa bài viết
             $post->delete();
-    
+
             return response()->json(['message' => 'Bài viết đã bị xóa'], 200);
         } catch (\Exception $e) {
             return response()->json(['error' => 'Xóa bài viết thất bại!'], 500);
         }
     }
-    
 }

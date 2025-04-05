@@ -53,23 +53,24 @@ class ReactionController extends Controller
     {
         $reactions = Reaction::with('user:id,username,profile_picture')
             ->where('post_id', $postId)
-            ->where('reaction_type', 'like')
             ->get();
-
-        $likedBy = $reactions->map(function ($reaction) {
+    
+        $reactedBy = $reactions->map(function ($reaction) {
             return [
                 'id' => $reaction->user->id,
                 'name' => $reaction->user->username,
                 'avatar' => asset('storage/' . $reaction->user->profile_picture),
-                'liked_at' => $reaction->created_at->toDateTimeString(),
+                'reaction' => $reaction->reaction_type, // ✅ thêm loại cảm xúc
+                'reacted_at' => $reaction->created_at->toDateTimeString(),
                 'mutualFriends' => null,
             ];
         });
-
+    
         return response()->json([
             'post_id' => $postId,
-            'likes' => $likedBy->count(),
-            'likedBy' => $likedBy,
+            'total_reactions' => $reactedBy->count(), // ✅ tổng số cảm xúc
+            'reactedBy' => $reactedBy,
         ]);
     }
+    
 }
