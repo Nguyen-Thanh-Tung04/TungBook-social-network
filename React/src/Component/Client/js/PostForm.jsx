@@ -1,5 +1,6 @@
-// PostModal.jsx
-import React from "react";
+import React, { useState } from "react";
+import EmojiPicker from "emoji-picker-react";
+import { FaSmile } from "react-icons/fa";
 
 const PostModal = ({
   isPostModalOpen,
@@ -12,8 +13,16 @@ const PostModal = ({
   handleRemoveImage,
   userData
 }) => {
+  const [showEmojiPicker, setShowEmojiPicker] = useState(false);
+
+  const handleEmojiClick = (emojiData) => {
+    const emoji = emojiData.emoji;
+    // Nối emoji vào cuối nội dung post
+    handlePostChange({ target: { value: postContent + emoji } });
+  };
+
   return (
-    <div className="relative w-full ">
+    <div className="relative w-full">
       <input
         type="text"
         placeholder="Tùng ơi, bạn đang nghĩ gì thế?"
@@ -38,8 +47,8 @@ const PostModal = ({
             </button>
             <div className="flex items-center mb-4">
               <img
-                    src={userData?.avatar_url }
-                    alt="User"
+                src={userData?.avatar_url}
+                alt="User"
                 className="w-10 h-10 rounded-full"
               />
               <div className="ml-3">
@@ -51,12 +60,48 @@ const PostModal = ({
             <h2 className="text-lg font-semibold mb-4">Tạo bài viết</h2>
 
             <form onSubmit={handlePostSubmit}>
-              <textarea
-                value={postContent}
-                onChange={handlePostChange}
-                placeholder="hôm nay đẹp trời"
-                className="w-full p-2 mb-4 bg-gray-100 rounded-md h-24 border-none outline-none resize-none"
-              />
+              <div className="relative">
+                <textarea
+                  value={postContent}
+                  onChange={handlePostChange}
+                  placeholder="Hôm nay đẹp trời"
+                  className="w-full p-2 mb-2 bg-gray-100 rounded-md h-24 border-none outline-none resize-none"
+                />
+                {/* Nút mở emoji */}
+                <button
+                  type="button"
+                  className="absolute bottom-3 right-3 text-xl text-gray-500 hover:text-gray-700"
+                  onClick={() => setShowEmojiPicker(!showEmojiPicker)}
+                >
+                  <FaSmile />
+                </button>
+
+                {/* Emoji Picker nổi trên toàn màn hình */}
+                {showEmojiPicker && (
+                  <div
+                    className="fixed z-[9999]"
+                    style={{
+                      bottom: "200px", // giữ nguyên
+                      right: "calc(50% - 630px)", // dịch sang phải thêm 50px so với trước
+                    }}
+                  >
+                    <div className="relative">
+                      {/* Mũi tên hướng lên giống Facebook */}
+                      <div className="absolute -top-2 right-6 w-4 h-4 bg-white rotate-45 border-t border-l border-gray-300 shadow z-10" />
+                      <EmojiPicker
+                        onEmojiClick={handleEmojiClick}
+                        theme="light"
+                        height={350}
+                        width={300}
+                      />
+                    </div>
+                  </div>
+                )}
+
+
+              </div>
+
+              {/* Upload file */}
               <div className="mb-4 border border-gray-300 rounded-lg p-2 text-center text-gray-500">
                 <input
                   type="file"
@@ -67,7 +112,6 @@ const PostModal = ({
                 />
                 {files.length > 0 ? (
                   <div className="grid gap-2 w-full max-w-lg mt-3 mx-auto">
-                    {/* Hiển thị danh sách file */}
                     {files.map((file, index) => (
                       <div key={index} className="relative">
                         <img
@@ -88,6 +132,8 @@ const PostModal = ({
                   <span>Thêm ảnh/video hoặc kéo và thả</span>
                 )}
               </div>
+
+              {/* Nút đăng */}
               <div className="flex items-center justify-between">
                 <button
                   type="submit"

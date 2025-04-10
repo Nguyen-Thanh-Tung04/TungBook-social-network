@@ -249,18 +249,42 @@ function ProfilePage() {
 
     // Fetch bài viết
     const [posts, setPosts] = useState([]);
+    const [postSummaries, setPostSummaries] = useState({});
 
     const fetchPosts = async () => {
-        const token = localStorage.getItem('authToken');
         try {
-            const response = await axios.get('http://127.0.0.1:8000/api/posts', {
-                headers: {
-                    Authorization: `Bearer ${token}`,
-                },
+            const token = localStorage.getItem("authToken");
+
+            // 1. Lấy danh sách tất cả bài viết
+            const postRes = await axios.get("http://127.0.0.1:8000/api/posts", {
+                headers: { Authorization: `Bearer ${token}` },
             });
-            setPosts(response.data);
+
+            // 2. Lấy thông tin người dùng hiện tại
+            const meRes = await axios.get("http://127.0.0.1:8000/api/me", {
+                headers: { Authorization: `Bearer ${token}` },
+            });
+
+            const myId = meRes.data.user.id;
+
+            // 3. Lọc bài viết có user.id === myId
+            const myPosts = postRes.data.filter((post) => post.user.id === myId);
+
+            setPosts(myPosts);
+             // ✅ Lấy dữ liệu cảm xúc tổng hợp (nếu có)
+        const summaries = {};
+        myPosts.forEach(post => {
+            if (post.reactions_summary) {
+                summaries[post.id] = post.reactions_summary;
+            }
+        });
+        setPostSummaries(summaries); // 👈 Dòng này là quan trọng
+
+            console.log("Bài viết của tôi:", myPosts);
+            console.log("1 bài viết mẫu:", postRes.data[0]);
+
         } catch (error) {
-            console.error('Error fetching posts:', error);
+            console.error("Lỗi khi fetch bài viết:", error);
         }
     };
 
@@ -303,6 +327,9 @@ function ProfilePage() {
             );
         }
     };
+
+    const [editingPost, setEditingPost] = useState(null); // nếu có thì đang sửa, nếu null thì đang tạo mới
+
 
     return (
         <div className=" bg-gray-100 min-h-fit ">
@@ -592,6 +619,7 @@ function ProfilePage() {
                                     userData={userData}
                                     posts={posts}
                                     setPosts={setPosts}
+                                    postSummaries={postSummaries} 
                                     autoFetch={false}
                                 />
 

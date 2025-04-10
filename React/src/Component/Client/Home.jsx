@@ -5,66 +5,33 @@ import axios from "axios";
 import { IoSend, IoEllipsisHorizontal } from "react-icons/io5";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import EmojiPicker from 'emoji-picker-react';
+
 
 const Home = () => {
-    const renderReplies = (replies) => {
-        return replies.map((reply) => (
-            <div key={reply.id} className="mt-2 ml-8 border-l-2 border-gray-300 pl-4">
-                <div className="flex items-start space-x-2">
-                    <img src={reply.user.avatar} className="w-7 h-7 rounded-full" />
-                    <div className="bg-gray-200 p-2 rounded-lg w-full">
-                        <h6 className="text-sm font-semibold">{reply.user.name}</h6>
-                        <p className="text-sm text-gray-800">{reply.content}</p>
-                        <div className="flex items-center space-x-4 text-xs text-gray-500 mt-1">
-                            <button className="hover:underline">Thích</button>
-                            <button
-                                onClick={() => {
-                                    setReplyToCommentId(reply.id);
-                                    setReplyContent('');
-                                }}
-                                className="hover:underline"
-                            >
-                                Phản hồi
-                            </button>
-                            <span>1 giờ trước</span>
-                        </div>
-                    </div>
-                </div>
 
-                {/* Form phản hồi cho reply */}
-                {replyToCommentId === reply.id && (
-                    <div className="mt-2 ml-12 space-y-2 w-full">
-                        <textarea
-                            value={replyContent}
-                            onChange={(e) => setReplyContent(e.target.value)}
-                            placeholder="Viết phản hồi..."
-                            className="w-full p-2 border rounded resize-none text-sm"
-                        />
-                        <div className="flex space-x-2">
-                            <button
-                                onClick={() => handleReplySubmit(reply.id)}
-                                className="text-white bg-green-500 px-3 py-1 rounded text-sm"
-                            >
-                                Gửi
-                            </button>
-                            <button
-                                onClick={() => {
-                                    setReplyToCommentId(null);
-                                    setReplyContent('');
-                                }}
-                                className="text-gray-500 text-sm"
-                            >
-                                Hủy
-                            </button>
-                        </div>
-                    </div>
-                )}
+    // 👇 Thêm state để điều khiển emoji picker
+    const [showEmojiPicker, setShowEmojiPicker] = useState(false);
 
-                {/* Đệ quy */}
-                {reply.replies?.length > 0 && renderReplies(reply.replies)}
-            </div>
-        ));
+    // 👇 Hàm khi chọn emoji
+    const handleEmojiClick = (emojiData) => {
+        const emoji = emojiData.emoji;
+
+        // Nếu đang nhập bình luận thì cập nhật commentInput
+        if (typeof setCommentInput === 'function') {
+            setCommentInput(prev => prev + emoji);
+        }
+
+        // Nếu đang nhập nội dung bài viết thì cập nhật postContent
+        if (typeof setPostContent === 'function') {
+            // 👈 Ưu tiên dùng callback
+            setPostContent(prev => prev + emoji);
+        } else if (typeof handlePostChange === 'function' && typeof postContent === 'string') {
+            // 👈 Fallback nếu không có setPostContent
+            handlePostChange({ target: { value: postContent + emoji } });
+        }
     };
+
 
     const [selectedImage, setSelectedImage] = useState(null);
 
@@ -75,9 +42,6 @@ const Home = () => {
     const closeImageViewer = () => {
         setSelectedImage(null); // Đóng chế độ xem ảnh
     };
-
-    // Bình luận
-    const [showCommentsModal, setShowCommentsModal] = useState(false);
 
     // Đăng bài
     const [isModalOpen, setIsModalOpen] = useState(false);
@@ -225,6 +189,67 @@ const Home = () => {
             alert("Lỗi mạng: Không kết nối được đến server!");
             setSelectedPost({ post_id: postId, total_reactions: 0, likedBy: [] });
         }
+    };
+
+    // Bình luận
+    const [showCommentsModal, setShowCommentsModal] = useState(false);
+    const renderReplies = (replies) => {
+        return replies.map((reply) => (
+            <div key={reply.id} className="mt-2 ml-8 border-l-2 border-gray-300 pl-4">
+                <div className="flex items-start space-x-2">
+                    <img src={reply.user.avatar} className="w-7 h-7 rounded-full" />
+                    <div className="bg-gray-200 p-2 rounded-lg w-full">
+                        <h6 className="text-sm font-semibold">{reply.user.name}</h6>
+                        <p className="text-sm text-gray-800">{reply.content}</p>
+                        <div className="flex items-center space-x-4 text-xs text-gray-500 mt-1">
+                            <button className="hover:underline">Thích</button>
+                            <button
+                                onClick={() => {
+                                    setReplyToCommentId(reply.id);
+                                    setReplyContent('');
+                                }}
+                                className="hover:underline"
+                            >
+                                Phản hồi
+                            </button>
+                            <span>1 giờ trước</span>
+                        </div>
+                    </div>
+                </div>
+
+                {/* Form phản hồi cho reply */}
+                {replyToCommentId === reply.id && (
+                    <div className="mt-2 ml-12 space-y-2 w-full">
+                        <textarea
+                            value={replyContent}
+                            onChange={(e) => setReplyContent(e.target.value)}
+                            placeholder="Viết phản hồi..."
+                            className="w-full p-2 border rounded resize-none text-sm"
+                        />
+                        <div className="flex space-x-2">
+                            <button
+                                onClick={() => handleReplySubmit(reply.id)}
+                                className="text-white bg-green-500 px-3 py-1 rounded text-sm"
+                            >
+                                Gửi
+                            </button>
+                            <button
+                                onClick={() => {
+                                    setReplyToCommentId(null);
+                                    setReplyContent('');
+                                }}
+                                className="text-gray-500 text-sm"
+                            >
+                                Hủy
+                            </button>
+                        </div>
+                    </div>
+                )}
+
+                {/* Đệ quy */}
+                {reply.replies?.length > 0 && renderReplies(reply.replies)}
+            </div>
+        ));
     };
 
     const openCommentsModal = async (postId) => {
@@ -505,10 +530,7 @@ const Home = () => {
         }
     };
 
-
-
     const currentUserId = parseInt(localStorage.getItem('userId'), 10);
-
 
     const [currentIndex, setCurrentIndex] = useState(0);
 
@@ -590,11 +612,17 @@ const Home = () => {
         };
     }, []);
 
+    // Chỉnh sửa bài viết 
+    const [editingPost, setEditingPost] = useState(null); // null hoặc object bài viết
+    const [isEditModalOpen, setIsEditModalOpen] = useState(false);
 
-    const handleEditPost = () => {
-        console.log("Chỉnh sửa bài viết");
-        setIsPostOptionsModalOpen(false);
+    const handleEditPost = (post) => {
+        setEditingPost(post); // truyền dữ liệu post hiện tại
+        setIsEditModalOpen(true); // mở modal
+        setIsPostOptionsModalOpen(false); // đóng menu ba chấm
     };
+
+
 
     const handleEditPrivacy = () => {
         console.log("Chỉnh sửa đối tượng");
@@ -809,12 +837,46 @@ const Home = () => {
                                             {/* Form để đăng bài */}
                                             <form onSubmit={handlePostSubmit}>
                                                 {/* Phần nhập nội dung bài viết */}
-                                                <textarea
-                                                    value={postContent}
-                                                    onChange={handlePostChange}
-                                                    placeholder="hôm nay đẹp trời"
-                                                    className="w-full p-2 mb-4 bg-gray-100 rounded-md h-24 border-none outline-none resize-none"
-                                                />
+                                                <div className="relative">
+                                                    <textarea
+                                                        value={postContent}
+                                                        onChange={handlePostChange}
+                                                        placeholder="Hôm nay đẹp trời"
+                                                        className="w-full p-2 mb-2 bg-gray-100 rounded-md h-24 border-none outline-none resize-none"
+                                                    />
+
+                                                    {/* Nút mở emoji */}
+                                                    <button
+                                                        type="button"
+                                                        className="absolute bottom-3 right-3 text-xl text-gray-500 hover:text-gray-700"
+                                                        onClick={() => setShowEmojiPicker(!showEmojiPicker)}
+                                                    >
+                                                        <FaSmile />
+                                                    </button>
+
+                                                    {/* Emoji Picker nổi toàn màn hình, đúng vị trí của icon 😄 */}
+                                                    {showEmojiPicker && (
+                                                        <div
+                                                            className="fixed z-[9999]"
+                                                            style={{
+                                                                bottom: "calc(50vh - 120px)", // tuỳ chỉnh để hiển thị phía trên nút emoji
+                                                                right: "calc(50% - 630px)",    // căn giữa modal 700px + dịch nhẹ sang phải
+                                                            }}
+                                                        >
+                                                            <div className="relative">
+                                                                {/* Mũi tên chỉ xuống giống Facebook */}
+                                                                <div className="absolute -top-2 right-6 w-4 h-4 bg-white rotate-45 border-t border-l border-gray-300 shadow z-10" />
+                                                                <EmojiPicker
+                                                                    onEmojiClick={handleEmojiClick}
+                                                                    theme="light"
+                                                                    height={350}
+                                                                    width={300}
+                                                                />
+                                                            </div>
+                                                        </div>
+                                                    )}
+                                                </div>
+
                                                 {/* Thêm ảnh/video */}
                                                 <div className="mb-4 border border-gray-300 rounded-lg p-2 text-center text-gray-500">
                                                     <input
@@ -1133,10 +1195,11 @@ const Home = () => {
                                     >
                                         <button
                                             className="w-full text-left py-2 px-4 hover:bg-gray-100"
-                                            onClick={handleEditPost}
+                                            onClick={() => handleEditPost(post)} // truyền bài post cần sửa
                                         >
                                             ✏️ Chỉnh sửa bài viết
                                         </button>
+
                                         <button
                                             className="w-full text-left py-2 px-4 hover:bg-gray-100"
                                             onClick={handleEditPrivacy}
@@ -1608,7 +1671,7 @@ const Home = () => {
                                 )}
                             </div>
 
-                            <div className="border-t px-4 py-3 flex items-center">
+                            <div className="border-t px-4 py-3 flex items-center relative">
                                 <input
                                     type="text"
                                     value={commentInput}
@@ -1616,6 +1679,16 @@ const Home = () => {
                                     placeholder="Viết bình luận..."
                                     className="flex-1 px-3 py-2 border rounded-full outline-none"
                                 />
+
+                                {/* Nút emoji */}
+                                <button
+                                    className="ml-2 text-xl text-gray-500 hover:text-gray-700"
+                                    onClick={() => setShowEmojiPicker(!showEmojiPicker)}
+                                >
+                                    <FaSmile />
+                                </button>
+
+                                {/* Nút gửi */}
                                 <button
                                     onClick={handleCommentSubmit}
                                     disabled={isSending}
@@ -1623,7 +1696,31 @@ const Home = () => {
                                 >
                                     {isSending ? "Đang gửi..." : "Gửi"}
                                 </button>
+
+                                {/* Emoji Picker */}
+                                {showEmojiPicker && (
+                                    <div
+                                        className="fixed z-[9999]"
+                                        style={{
+                                            bottom: "160px", // điều chỉnh cho hợp với modal comment
+                                            right: "calc(50% - 600px)", // căn giữa modal 700px
+                                        }}
+                                    >
+                                        <div className="relative">
+                                            {/* Mũi tên hướng lên giống Facebook */}
+                                            <div className="absolute -top-2 right-6 w-4 h-4 bg-white rotate-45 border-t border-l border-gray-300 shadow z-10" />
+                                            <EmojiPicker
+                                                onEmojiClick={handleEmojiClick}
+                                                theme="light"
+                                                height={350}
+                                                width={300}
+                                            />
+                                        </div>
+                                    </div>
+                                )}
+
                             </div>
+
 
                         </div>
                     </div>
