@@ -73,25 +73,67 @@ class PostController extends Controller
     public function update(Request $request, $id)
     {
         try {
+            // Validate dữ liệu
             $request->validate([
-                'user_id' => 'required|exists:users,id',
                 'content' => 'required|string',
-                'type_id' => 'nullable|exists:types,id'
+                'type_id' => 'nullable|exists:types,id',
+                'files.*' => 'nullable|file|mimes:jpg,jpeg,png,gif|max:5120',
             ]);
-
+    
             $post = Post::findOrFail($id);
-            $post->update($request->all());
-
+    
+            // Kiểm tra quyền chỉnh sửa
+            if ($post->user_id !== Auth::id()) {
+                return response()->json(['error' => 'Không có quyền chỉnh sửa bài viết này'], 403);
+            }
+    
+            // Cập nhật nội dung
+            $post->content = $request->content;
+            $post->type_id = $request->type_id;
+            $post->save();
+    
+            // Nếu có ảnh mới
+            if ($request->hasFile('files')) {
+                foreach ($request->file('files') as $file) {
+                    $fileName = time() . '_' . $file->getClientOriginalName();
+                    $filePath = $file->storeAs('posts', $fileName, 'public');
+    
+                    $media = Media::create([
+                        'file_path' => $filePath,
+                        'file_type' => $file->getMimeType(),
+                        'file_size' => $file->getSize(),
+                    ]);
+    
+                    PostMedia::create([
+                        'post_id' => $post->id,
+                        'media_id' => $media->id,
+                    ]);
+                }
+            }
+    
+            // Load lại media để lấy ảnh mới nhất
+            $post->load('media');
+    
+            // Biến đổi media thành mảng ảnh
+            $images = $post->media->map(fn($m) => asset('storage/' . $m->file_path))->toArray();
+    
+            // Trả về bài viết với hình ảnh mới
             return response()->json([
                 'message' => 'Bài viết đã được cập nhật!',
-                'post' => $post
+                'post' => array_merge($post->toArray(), [
+                    'images' => $images,
+                ]),
             ], 200);
+    
         } catch (ValidationException $e) {
             return response()->json(['error' => $e->errors()], 422);
         } catch (\Exception $e) {
             return response()->json(['error' => 'Đã xảy ra lỗi!'], 500);
         }
     }
+    
+    
+    
 
     public function store(Request $request)
     {

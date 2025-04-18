@@ -9,6 +9,8 @@ import {
 import axios from "axios";
 import PostForm from "../js/PostForm";
 import ListPostUser from "../js/listPostUser";
+import { toast } from "react-toastify";
+
 
 
 
@@ -229,7 +231,10 @@ function ProfilePage() {
     const [isPostModalOpen, setIsPostModalOpen] = useState(false); // Cho modal đăng bài viết
     const [postContent, setPostContent] = useState("");
     const [files, setFiles] = useState([]);
-    const togglePostModal = () => setIsPostModalOpen(!isPostModalOpen);
+    const togglePostModal = () => {
+        setIsPostModalOpen(!isPostModalOpen);
+        if (isPostModalOpen) setEditingPost(null);
+    };
 
 
     const handlePostChange = (e) => {
@@ -237,10 +242,11 @@ function ProfilePage() {
     };
 
     const handleFileChange = (e) => {
-        const selectedFiles = Array.from(e.target.files).filter(
+        const newFiles = Array.from(e.target.files).filter(
             (file) => file instanceof File
         );
-        setFiles(selectedFiles);
+
+        setFiles((prev) => [...prev, ...newFiles]);
     };
 
     const handleRemoveImage = (index) => {
@@ -271,17 +277,17 @@ function ProfilePage() {
             const myPosts = postRes.data.filter((post) => post.user.id === myId);
 
             setPosts(myPosts);
-             // ✅ Lấy dữ liệu cảm xúc tổng hợp (nếu có)
-        const summaries = {};
-        myPosts.forEach(post => {
-            if (post.reactions_summary) {
-                summaries[post.id] = post.reactions_summary;
-            }
-        });
-        setPostSummaries(summaries); // 👈 Dòng này là quan trọng
+            // ✅ Lấy dữ liệu cảm xúc tổng hợp (nếu có)
+            const summaries = {};
+            myPosts.forEach(post => {
+                if (post.reactions_summary) {
+                    summaries[post.id] = post.reactions_summary;
+                }
+            });
+            setPostSummaries(summaries); // 👈 Dòng này là quan trọng
 
-            console.log("Bài viết của tôi:", myPosts);
-            console.log("1 bài viết mẫu:", postRes.data[0]);
+            // console.log("Bài viết của tôi:", myPosts);
+            // console.log("1 bài viết mẫu:", postRes.data[0]);
 
         } catch (error) {
             console.error("Lỗi khi fetch bài viết:", error);
@@ -330,6 +336,56 @@ function ProfilePage() {
 
     const [editingPost, setEditingPost] = useState(null); // nếu có thì đang sửa, nếu null thì đang tạo mới
 
+    const handleUpdatePost = async (e, postId) => {
+        e.preventDefault();
+        console.log("Cập nhật bài viết với ID:", postId);
+
+        const formData = new FormData();
+        formData.append("content", editingPost.content || "");
+        formData.append("type_id", editingPost.type_id || 1);
+
+        // Thêm các file ảnh nếu có
+        if (files && files.length > 0) {
+            files.forEach((file) => {
+                if (file instanceof File) {
+                    formData.append("files[]", file);
+                }
+            });
+        }
+
+        try {
+            const res = await axios.post(
+                `http://localhost:8000/api/posts/${postId}?_method=PUT`,
+                formData,
+                {
+                    headers: {
+                        "Content-Type": "multipart/form-data",
+                        Authorization: `Bearer ${localStorage.getItem("authToken")}`,
+                    },
+                }
+            );
+
+            // Cập nhật lại bài viết trong danh sách
+            setPosts((prev) =>
+                prev.map((p) =>
+                    p.id === postId
+                        ? {
+                            ...res.data.post,
+                            user: p.user, // giữ lại thông tin user cũ nếu backend không trả lại
+                        }
+                        : p
+                )
+            );
+
+            toast.success("Cập nhật bài viết thành công!");
+            togglePostModal();
+            setEditingPost(null);
+            setFiles([]);
+        } catch (err) {
+            toast.error("Cập nhật bài viết thất bại!");
+            console.error("Lỗi cập nhật:", err.response?.data || err);
+        }
+    };
 
     return (
         <div className=" bg-gray-100 min-h-fit ">
@@ -338,7 +394,7 @@ function ProfilePage() {
                 <div className="flex items-center">
                     <img
                         ref={avatarRef}
-                        src={avatarPreview || userData?.avatar_url || 'https://scontent.fhan4-3.fna.fbcdn.net/v/t39.30808-6/430028095_1758861091286933_7708332768369038985_n.jpg?_nc_cat=100&ccb=1-7&_nc_sid=6ee11a&_nc_eui2=AeHe4DTpbgymh3ve45vOO9iOJrbBaxDj87QmtsFrEOPztDUYQ7OYmp0HgJgDKax5xCYXQ4XAE0toaxhN-Keq3fcP&_nc_ohc=StIE3wkzbkIQ7kNvgHZX9fC&_nc_oc=Adk4jWxUg0SCKCbUa-5T2EiIf4_S4rxqfgZwwLKsz0qt9ZlkAIIwESzh0CnwdpuIQK4&_nc_zt=23&_nc_ht=scontent.fhan4-3.fna&_nc_gid=5rVn09AEmF7Qt1jJA3a1lA&oh=00_AYHA91Oda2kvtNjXtwejlCK1m5kJiANeG3t5fY5_SpamxA&oe=67F069EF'}
+                        src={avatarPreview || userData?.avatar_url || '../../../../../public/storage/avatars/no-avatar.jpg'}
                         alt="User Avatar"
                         className="w-40 h-40 rounded-full border-4 border-white cursor-pointer"
                         onClick={toggleAvatarModal}
@@ -364,7 +420,7 @@ function ProfilePage() {
                     <div className="relative w-auto max-w-5xl">
                         <button onClick={handleCloseImageModal} className="absolute top-2 right-2 text-white text-3xl">&times;</button>
                         <img
-                            src={avatarPreview || userData?.avatar_url || 'https://scontent.fhan4-3.fna.fbcdn.net/v/t39.30808-6/430028095_1758861091286933_7708332768369038985_n.jpg?_nc_cat=100&ccb=1-7&_nc_sid=6ee11a&_nc_eui2=AeHe4DTpbgymh3ve45vOO9iOJrbBaxDj87QmtsFrEOPztDUYQ7OYmp0HgJgDKax5xCYXQ4XAE0toaxhN-Keq3fcP&_nc_ohc=StIE3wkzbkIQ7kNvgHZX9fC&_nc_oc=Adk4jWxUg0SCKCbUa-5T2EiIf4_S4rxqfgZwwLKsz0qt9ZlkAIIwESzh0CnwdpuIQK4&_nc_zt=23&_nc_ht=scontent.fhan4-3.fna&_nc_gid=5rVn09AEmF7Qt1jJA3a1lA&oh=00_AYHA91Oda2kvtNjXtwejlCK1m5kJiANeG3t5fY5_SpamxA&oe=67F069EF'}
+                            src={avatarPreview || userData?.avatar_url || '../../../../../public/storage/avatars/no-avatar.jpg'}
                             alt="Avatar Detail"
                             className="w-[800px] h-auto max-h-[90vh] rounded-lg"
                         />
@@ -596,7 +652,7 @@ function ProfilePage() {
 
                                 <div className="flex items-center justify-between mb-4 bg-white p-3">
                                     <img
-                                        src={avatarPreview || userData?.avatar_url || 'https://scontent.fhan4-3.fna.fbcdn.net/v/t39.30808-6/430028095_1758861091286933_7708332768369038985_n.jpg?_nc_cat=100&ccb=1-7&_nc_sid=6ee11a&_nc_eui2=AeHe4DTpbgymh3ve45vOO9iOJrbBaxDj87QmtsFrEOPztDUYQ7OYmp0HgJgDKax5xCYXQ4XAE0toaxhN-Keq3fcP&_nc_ohc=StIE3wkzbkIQ7kNvgHZX9fC&_nc_oc=Adk4jWxUg0SCKCbUa-5T2EiIf4_S4rxqfgZwwLKsz0qt9ZlkAIIwESzh0CnwdpuIQK4&_nc_zt=23&_nc_ht=scontent.fhan4-3.fna&_nc_gid=5rVn09AEmF7Qt1jJA3a1lA&oh=00_AYHA91Oda2kvtNjXtwejlCK1m5kJiANeG3t5fY5_SpamxA&oe=67F069EF'}
+                                        src={avatarPreview || userData?.avatar_url || '../../../../../public/storage/avatars/no-avatar.jpg'}
                                         alt="User Avatar"
                                         className="w-10 h-10 rounded-full mr-4"
                                     />
@@ -604,24 +660,36 @@ function ProfilePage() {
                                     {<PostForm
                                         isPostModalOpen={isPostModalOpen}
                                         togglePostModal={togglePostModal}
-                                        postContent={postContent}
-                                        handlePostChange={handlePostChange}
-                                        handlePostSubmit={handlePostSubmit}
+                                        postContent={editingPost ? editingPost.content : postContent}
+                                        handlePostChange={editingPost
+                                            ? (e) =>
+                                                setEditingPost((prev) => ({ ...prev, content: e.target.value }))
+                                            : handlePostChange}
+                                        handlePostSubmit={
+                                            editingPost
+                                                ? (e) => handleUpdatePost(e, editingPost.id)
+                                                : handlePostSubmit
+                                        }
+                                        files={editingPost ? editingPost.images || [] : files}
                                         handleFileChange={handleFileChange}
-                                        files={files}
                                         handleRemoveImage={handleRemoveImage}
                                         userData={userData}
-                                    />}
+                                        editingPost={editingPost}
+                                        clearEditingPost={() => setEditingPost(null)} // dùng để reset lại về trạng thái tạo mới
+                                    />
+                                    }
                                 </div>
 
                                 {/* Bài viết  */}
                                 <ListPostUser
-                                    userData={userData}
                                     posts={posts}
                                     setPosts={setPosts}
-                                    postSummaries={postSummaries} 
-                                    autoFetch={false}
+                                    userData={userData}
+                                    setEditingPost={setEditingPost}
+                                    togglePostModal={togglePostModal}
+                                    setFiles={setFiles}
                                 />
+
 
                             </div>
                         </div>

@@ -11,7 +11,9 @@ const PostModal = ({
   handleFileChange,
   files,
   handleRemoveImage,
-  userData
+  userData,
+  editingPost,
+  clearEditingPost
 }) => {
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
 
@@ -57,7 +59,9 @@ const PostModal = ({
                 </h4>
               </div>
             </div>
-            <h2 className="text-lg font-semibold mb-4">Tạo bài viết</h2>
+            <h2 className="text-lg font-semibold mb-4">
+              {editingPost ? 'Chỉnh sửa bài viết' : 'Tạo bài viết'}
+            </h2>
 
             <form onSubmit={handlePostSubmit}>
               <div className="relative">
@@ -115,7 +119,11 @@ const PostModal = ({
                     {files.map((file, index) => (
                       <div key={index} className="relative">
                         <img
-                          src={URL.createObjectURL(file)}
+                          src={
+                            typeof file === "string"
+                              ? file // ảnh từ server đã là URL
+                              : URL.createObjectURL(file) // file upload mới
+                          }
                           alt="selected"
                           className="w-full rounded-lg"
                         />
@@ -131,6 +139,7 @@ const PostModal = ({
                 ) : (
                   <span>Thêm ảnh/video hoặc kéo và thả</span>
                 )}
+
               </div>
 
               {/* Nút đăng */}
@@ -139,7 +148,7 @@ const PostModal = ({
                   type="submit"
                   className="bg-blue-500 w-full text-white px-4 py-2 rounded-md"
                 >
-                  Đăng
+                  {editingPost ? 'Cập nhật' : 'Đăng'}
                 </button>
               </div>
             </form>

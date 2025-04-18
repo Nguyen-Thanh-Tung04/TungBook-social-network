@@ -36,6 +36,7 @@ Route::middleware('auth:sanctum')->post('logout', [AuthController::class, 'logou
 
 // Route::apiResource('posts', PostController::class);
 Route::middleware('auth:sanctum')->group(function () {
+    Route::put('/posts/{id}', [PostController::class, 'update']); // ✅ Thêm dòng này
     Route::post('/posts', [PostController::class, 'store']);
     Route::get('/posts', [PostController::class, 'index']);
     Route::delete('/posts/{id}', [PostController::class, 'destroy']); // Thêm route xóa bài viết

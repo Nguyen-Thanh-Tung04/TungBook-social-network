@@ -12,6 +12,10 @@ const ListPostUser = ({
     autoFetch = false, // tùy chọn fetch bài viết tự động
     posts: externalPosts = [],
     setPosts: setExternalPosts = () => { },
+    setEditingPost,        // ✅ thêm vào đây
+    togglePostModal,       // ✅ mở lại modal
+    setFiles,             // ✅ load ảnh cũ vào state
+    
 }) => {
     // 👇 Thêm state để điều khiển emoji picker
     const [showEmojiPicker, setShowEmojiPicker] = useState(false);
@@ -586,8 +590,36 @@ const ListPostUser = ({
     };
 
 
-    return (
-        <>
+        const handleUpdatePost = async (e, postId) => {
+            e.preventDefault();
+
+            try {
+                const res = await axios.put(`http://localhost:8000/api/posts/${postId}`, {
+                    content: editingPost.content,
+                    // Nếu có thêm ảnh: truyền thêm image info
+                }, {
+                    headers: {
+                        Authorization: `Bearer ${localStorage.getItem("authToken")}`,
+                        Accept: "application/json",
+                    },
+                });
+
+                // Cập nhật lại bài viết trong danh sách
+                setPosts((prev) =>
+                    prev.map((p) => (p.id === postId ? res.data.post : p))
+                );
+
+                toast.success("Cập nhật bài viết thành công!");
+                setIsEditModalOpen(false);
+                setEditingPost(null);
+            } catch (err) {
+                toast.error("Cập nhật bài viết thất bại!");
+                console.error(err);
+            }
+        };
+
+        return (
+            <>
             {postsToRender.map((post) => (
                 <div key={post.id} className="bg-white p-4 rounded-lg shadow-md mb-6">
                     <div className="flex items-center justify-between mb-4">
@@ -615,9 +647,19 @@ const ListPostUser = ({
                                     ref={modalRef}
                                     className="absolute right-0 mt-2 w-48 bg-white border rounded shadow-lg"
                                 >
-                                    <button className="px-4 py-2 w-full text-left hover:bg-gray-100">
-                                        ✏️ Chỉnh sửa
+                                    <button
+                                        className="w-full text-left py-2 px-4 hover:bg-gray-100"
+                                        onClick={() => {
+                                            setEditingPost(post);        // ✅ truyền bài viết cần sửa vào state
+                                            togglePostModal();           // ✅ mở lại modal tạo/sửa bài viết
+                                            setFiles(post.images || []); // 👈 load ảnh cũ vào state
+
+                                        }}
+                                    >
+                                        ✏️ Chỉnh sửa bài viết
                                     </button>
+
+
                                     <button className="px-4 py-2 w-full text-left hover:bg-gray-100">
                                         🔒 Đổi đối tượng
                                     </button>

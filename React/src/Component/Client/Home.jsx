@@ -6,7 +6,7 @@ import { IoSend, IoEllipsisHorizontal } from "react-icons/io5";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import EmojiPicker from 'emoji-picker-react';
-
+import PostModal from "./js/PostForm";
 
 const Home = () => {
 
@@ -31,6 +31,8 @@ const Home = () => {
             handlePostChange({ target: { value: postContent + emoji } });
         }
     };
+    const [showEmojiPickerReply, setShowEmojiPickerReply] = useState(false);
+
 
 
     const [selectedImage, setSelectedImage] = useState(null);
@@ -615,11 +617,63 @@ const Home = () => {
     // Chỉnh sửa bài viết 
     const [editingPost, setEditingPost] = useState(null); // null hoặc object bài viết
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+    const [isPostModalOpen, setIsPostModalOpen] = useState(false);
+
 
     const handleEditPost = (post) => {
-        setEditingPost(post); // truyền dữ liệu post hiện tại
-        setIsEditModalOpen(true); // mở modal
-        setIsPostOptionsModalOpen(false); // đóng menu ba chấm
+        setEditingPost(post);                 // Gán bài viết cần sửa
+        setFiles(post.images || []);          // Load ảnh cũ (nếu có)
+        setIsPostModalOpen(true);             // Mở modal
+    };
+
+    const handleUpdatePost = async (e, postId) => {
+        e.preventDefault();
+        console.log("Cập nhật bài viết với ID:", postId);
+
+        const formData = new FormData();
+        formData.append("content", editingPost.content || "");
+        formData.append("type_id", editingPost.type_id || 1);
+
+        // Thêm các file ảnh nếu có
+        if (files && files.length > 0) {
+            files.forEach((file) => {
+                if (file instanceof File) {
+                    formData.append("files[]", file);
+                }
+            });
+        }
+
+        try {
+            const res = await axios.post(
+                `http://localhost:8000/api/posts/${postId}?_method=PUT`,
+                formData,
+                {
+                    headers: {
+                        "Content-Type": "multipart/form-data",
+                        Authorization: `Bearer ${localStorage.getItem("authToken")}`,
+                    },
+                }
+            );
+
+            // Cập nhật lại bài viết trong danh sách
+            setPosts((prev) =>
+                prev.map((p) =>
+                    p.id === postId
+                        ? {
+                            ...res.data.post,
+                            user: p.user, // giữ lại thông tin user cũ nếu backend không trả lại
+                        }
+                        : p
+                )
+            );
+
+            toast.success("Cập nhật bài viết thành công!");
+            setEditingPost(null);
+            setFiles([]);
+        } catch (err) {
+            toast.error("Cập nhật bài viết thất bại!");
+            console.error("Lỗi cập nhật:", err.response?.data || err);
+        }
     };
 
 
@@ -781,13 +835,48 @@ const Home = () => {
 
     return (
         <div className="" style={{ width: "50vw" }}>
+            {editingPost && (
+                <PostModal
+                    isPostModalOpen={isPostModalOpen}
+                    togglePostModal={() => {
+                        setIsPostModalOpen(false);
+                        setEditingPost(null);
+                        setFiles([]);
+                    }}
+                    postContent={editingPost.content}
+                    handlePostChange={(e) =>
+                        setEditingPost({ ...editingPost, content: e.target.value })
+                    }
+                    handlePostSubmit={(e) => handleUpdatePost(e, editingPost.id)}
+                    handleFileChange={(e) => {
+                        const selectedFiles = Array.from(e.target.files).filter(
+                            (file) => file instanceof File
+                        );
+                        setFiles(selectedFiles);
+                    }}
+                    handleRemoveImage={(index) => {
+                        const updatedFiles = [...files];
+                        updatedFiles.splice(index, 1);
+                        setFiles(updatedFiles);
+                    }}
+                    files={files}
+                    userData={userData}
+                    editingPost={editingPost}
+                    clearEditingPost={() => {
+                        setEditingPost(null);
+                        setIsPostModalOpen(false);
+                        setFiles([]);
+                    }}
+                />
+            )}
+
             <main className="container mx-auto px-9 py-8 max-w-[1005px] bg-gray-200 ">
 
                 {/* Thanh trạng thái */}
                 <div className="bg-white p-4 rounded-lg shadow-md mb-6">
                     <div className="flex items-center">
                         <img
-                            src={userData?.avatar_url || 'https://scontent.fhan4-3.fna.fbcdn.net/v/t39.30808-6/430028095_1758861091286933_7708332768369038985_n.jpg?_nc_cat=100&ccb=1-7&_nc_sid=6ee11a&_nc_eui2=AeHe4DTpbgymh3ve45vOO9iOJrbBaxDj87QmtsFrEOPztDUYQ7OYmp0HgJgDKax5xCYXQ4XAE0toaxhN-Keq3fcP&_nc_ohc=StIE3wkzbkIQ7kNvgHZX9fC&_nc_oc=Adk4jWxUg0SCKCbUa-5T2EiIf4_S4rxqfgZwwLKsz0qt9ZlkAIIwESzh0CnwdpuIQK4&_nc_zt=23&_nc_ht=scontent.fhan4-3.fna&_nc_gid=5rVn09AEmF7Qt1jJA3a1lA&oh=00_AYHA91Oda2kvtNjXtwejlCK1m5kJiANeG3t5fY5_SpamxA&oe=67F069EF'}
+                            src={userData?.avatar_url || '../../../../../public/storage/avatars/no-avatar.jpg'}
                             alt="User Avatar"
                             className="w-10 h-10 rounded-full mr-4"
                         />
@@ -1128,7 +1217,7 @@ const Home = () => {
                     <a href="/story-up">
                         <div className="relative w-24 h-40 bg-gray-300 rounded-lg shadow-md flex flex-col items-center justify-center">
                             <img
-                                src={userData?.avatar_url || 'https://scontent.fhan4-3.fna.fbcdn.net/v/t39.30808-6/430028095_1758861091286933_7708332768369038985_n.jpg?_nc_cat=100&ccb=1-7&_nc_sid=6ee11a&_nc_eui2=AeHe4DTpbgymh3ve45vOO9iOJrbBaxDj87QmtsFrEOPztDUYQ7OYmp0HgJgDKax5xCYXQ4XAE0toaxhN-Keq3fcP&_nc_ohc=StIE3wkzbkIQ7kNvgHZX9fC&_nc_oc=Adk4jWxUg0SCKCbUa-5T2EiIf4_S4rxqfgZwwLKsz0qt9ZlkAIIwESzh0CnwdpuIQK4&_nc_zt=23&_nc_ht=scontent.fhan4-3.fna&_nc_gid=5rVn09AEmF7Qt1jJA3a1lA&oh=00_AYHA91Oda2kvtNjXtwejlCK1m5kJiANeG3t5fY5_SpamxA&oe=67F069EF'}
+                                src={userData?.avatar_url || '../../../../../public/storage/avatars/no-avatar.jpg'}
                                 alt="Create Story"
                                 className="w-12 h-12 rounded-full border-2 border-blue-500"
                             />
@@ -1195,10 +1284,11 @@ const Home = () => {
                                     >
                                         <button
                                             className="w-full text-left py-2 px-4 hover:bg-gray-100"
-                                            onClick={() => handleEditPost(post)} // truyền bài post cần sửa
+                                            onClick={() => handleEditPost(post)}
                                         >
                                             ✏️ Chỉnh sửa bài viết
                                         </button>
+
 
                                         <button
                                             className="w-full text-left py-2 px-4 hover:bg-gray-100"
@@ -1225,7 +1315,7 @@ const Home = () => {
                             <img
                                 src={post.images[0]}
                                 alt="Post Image"
-                                className="w-full h-auto rounded-lg cursor-pointer"
+                                className="max-w-full max-h-[600px] w-auto h-auto rounded-lg cursor-pointer object-contain mx-auto"
                                 onClick={() => handleImageClick(post.images[0])}
                             />
                         )}
@@ -1521,16 +1611,64 @@ const Home = () => {
 
                                             {/* Form phản hồi cho comment cha */}
                                             {replyToCommentId === comment.id && (
-                                                <div className="mt-2 ml-12 space-y-2">
+                                                <div className="mt-2 ml-12 space-y-2 relative">
                                                     <textarea
                                                         value={replyContent}
                                                         onChange={(e) => setReplyContent(e.target.value)}
                                                         placeholder="Viết phản hồi..."
                                                         className="w-full p-2 border rounded resize-none text-sm"
                                                     />
-                                                    <div className="flex space-x-2">
-                                                        <button onClick={() => handleReplySubmit(comment.id)} className="text-white bg-green-500 px-3 py-1 rounded text-sm">Gửi</button>
-                                                        <button onClick={() => { setReplyToCommentId(null); setReplyContent(''); }} className="text-gray-500 text-sm">Hủy</button>
+
+                                                    {/* Nút mở emoji cho phản hồi */}
+                                                    <button
+                                                        type="button"
+                                                        className="absolute bottom-14 right-2 text-xl text-gray-500 hover:text-gray-700"
+                                                        onClick={() => setShowEmojiPickerReply((prev) => !prev)}
+                                                    >
+                                                        <FaSmile />
+                                                    </button>
+
+                                                    {/* Emoji Picker riêng cho phản hồi */}
+                                                    {showEmojiPickerReply && (
+                                                        <div
+                                                            className="fixed z-[9999]" // fixed để thoát khỏi cha, z cao để nổi lên
+                                                            style={{
+                                                                bottom: "200px", // khoảng cách với textarea, tùy chỉnh
+                                                                right: "calc(50% - 600px)", // hoặc căn theo tọa độ con trỏ
+                                                            }}
+                                                        >
+                                                            <div className="relative">
+                                                                <div className="absolute -top-2 right-6 w-4 h-4 bg-white rotate-45 border-t border-l border-gray-300 shadow z-10" />
+                                                                <EmojiPicker
+                                                                    onEmojiClick={(emojiData) =>
+                                                                        setReplyContent((prev) => prev + emojiData.emoji)
+                                                                    }
+                                                                    theme="light"
+                                                                    height={350}
+                                                                    width={300}
+                                                                />
+                                                            </div>
+                                                        </div>
+                                                    )}
+
+
+                                                    <div className="flex space-x-2 mt-1">
+                                                        <button
+                                                            onClick={() => handleReplySubmit(comment.id)}
+                                                            className="text-white bg-green-500 px-3 py-1 rounded text-sm"
+                                                        >
+                                                            Gửi
+                                                        </button>
+                                                        <button
+                                                            onClick={() => {
+                                                                setReplyToCommentId(null);
+                                                                setReplyContent("");
+                                                                setShowEmojiPickerReply(false); // Ẩn emoji khi hủy
+                                                            }}
+                                                            className="text-gray-500 text-sm"
+                                                        >
+                                                            Hủy
+                                                        </button>
                                                     </div>
                                                 </div>
                                             )}

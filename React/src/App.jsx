@@ -13,11 +13,25 @@ import Groups from './Component/Client/Groups';
 import GroupsDetail from './Component/Client/GroupsDetail';
 import ForgotPassword from './Component/Client/Auth/ForgotPassword';
 import Weather from './Component/Client/Weather';
+import { ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css'; // 👈 import file CSS để toast hoạt động
 
 
 const App = () => {
   return (
     <Router>
+      <ToastContainer
+        position="top-right"
+        autoClose={3000}
+        hideProgressBar={false}
+        newestOnTop={false}
+        closeOnClick
+        rtl={false}
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+        theme="light"
+      />
       <Routes>
         {/* Layout bao bọc các route cần Header và Footer */}
         <Route path="/" element={<Layout />}>
