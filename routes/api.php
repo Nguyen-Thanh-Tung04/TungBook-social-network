@@ -66,3 +66,5 @@ Route::middleware('auth:sanctum')->group(function () {
 
 }); 
 Route::delete('/comments/{id}', [CommentController::class, 'destroy']);
+
+Route::middleware('auth:sanctum')->get('/user/media', [AuthController::class, 'imgProfile']);

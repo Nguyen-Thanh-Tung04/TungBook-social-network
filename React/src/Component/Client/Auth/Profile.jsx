@@ -387,6 +387,29 @@ function ProfilePage() {
         }
     };
 
+
+    const [images, setImages] = useState([]);
+
+    useEffect(() => {
+        const fetchUserImages = async () => {
+            try {
+                const res = await axios.get("http://127.0.0.1:8000/api/user/media", {
+                    headers: {
+                        Authorization: `Bearer ${localStorage.getItem("authToken")}`,
+                        Accept: "application/json",
+                    },
+                });
+
+                setImages(res.data.images); // ✅ sửa lại key chính xác
+            } catch (error) {
+                console.error("Lỗi khi tải ảnh:", error);
+            }
+        };
+
+        fetchUserImages();
+    }, []);
+
+
     return (
         <div className=" bg-gray-100 min-h-fit ">
             {/* Header */}
@@ -598,52 +621,16 @@ function ProfilePage() {
 
                                     {/* Photo Grid */}
                                     <div className="grid grid-cols-3 gap-4">
-                                        <img
-                                            src="https://randomuser.me/api/portraits/men/14.jpg"
-                                            alt="Photo 1"
-                                            className="w-full h-auto rounded"
-                                        />
-                                        <img
-                                            src="https://randomuser.me/api/portraits/men/9.jpg"
-                                            alt="Photo 2"
-                                            className="w-full h-auto rounded"
-                                        />
-                                        <img
-                                            src="https://randomuser.me/api/portraits/men/6.jpg"
-                                            alt="Photo 3"
-                                            className="w-full h-auto rounded"
-                                        />
-                                        <img
-                                            src="https://randomuser.me/api/portraits/men/15.jpg"
-                                            alt="Photo 4"
-                                            className="w-full h-auto rounded"
-                                        />
-                                        <img
-                                            src="https://randomuser.me/api/portraits/men/1.jpg"
-                                            alt="Photo 5"
-                                            className="w-full h-auto rounded"
-                                        />
-                                        <img
-                                            src="https://randomuser.me/api/portraits/men/52.jpg"
-                                            alt="Photo 6"
-                                            className="w-full h-auto rounded"
-                                        />
-                                        <img
-                                            src="https://randomuser.me/api/portraits/men/22.jpg"
-                                            alt="Photo 7"
-                                            className="w-full h-auto rounded"
-                                        />
-                                        <img
-                                            src="https://randomuser.me/api/portraits/men/5.jpg"
-                                            alt="Photo 8"
-                                            className="w-full h-auto rounded"
-                                        />
-                                        <img
-                                            src="https://randomuser.me/api/portraits/men/66.jpg"
-                                            alt="Photo 9"
-                                            className="w-full h-auto rounded"
-                                        />
+                                        {images.slice(0, 8).map((img, index) => (
+                                            <img
+                                                key={index}
+                                                src={img}
+                                                alt={`Ảnh ${index + 1}`}
+                                                className="w-full h-auto rounded object-cover"
+                                            />
+                                        ))}
                                     </div>
+                                    
                                 </div>
                             </div>
 
@@ -942,16 +929,7 @@ function ProfilePage() {
                                     </a>
                                 </div>
                                 <div className="grid grid-cols-4 gap-4">
-                                    {[
-                                        "https://picsum.photos/200/300?random=1",
-                                        "https://picsum.photos/200/300?random=2",
-                                        "https://picsum.photos/200/300?random=3",
-                                        "https://picsum.photos/200/300?random=4",
-                                        "https://picsum.photos/200/300?random=5",
-                                        "https://picsum.photos/200/300?random=6",
-                                        "https://picsum.photos/200/300?random=7",
-                                        "https://picsum.photos/200/300?random=8",
-                                    ].map((src, index) => (
+                                    {images.map((src, index) => (
                                         <img
                                             key={index}
                                             src={src}
@@ -960,6 +938,7 @@ function ProfilePage() {
                                         />
                                     ))}
                                 </div>
+                                
                             </div>
                         </div>
                     </div>

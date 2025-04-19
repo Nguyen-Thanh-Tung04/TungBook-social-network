@@ -15,7 +15,7 @@ const ListPostUser = ({
     setEditingPost,        // ✅ thêm vào đây
     togglePostModal,       // ✅ mở lại modal
     setFiles,             // ✅ load ảnh cũ vào state
-    
+
 }) => {
     // 👇 Thêm state để điều khiển emoji picker
     const [showEmojiPicker, setShowEmojiPicker] = useState(false);
@@ -590,36 +590,36 @@ const ListPostUser = ({
     };
 
 
-        const handleUpdatePost = async (e, postId) => {
-            e.preventDefault();
+    const handleUpdatePost = async (e, postId) => {
+        e.preventDefault();
 
-            try {
-                const res = await axios.put(`http://localhost:8000/api/posts/${postId}`, {
-                    content: editingPost.content,
-                    // Nếu có thêm ảnh: truyền thêm image info
-                }, {
-                    headers: {
-                        Authorization: `Bearer ${localStorage.getItem("authToken")}`,
-                        Accept: "application/json",
-                    },
-                });
+        try {
+            const res = await axios.put(`http://localhost:8000/api/posts/${postId}`, {
+                content: editingPost.content,
+                // Nếu có thêm ảnh: truyền thêm image info
+            }, {
+                headers: {
+                    Authorization: `Bearer ${localStorage.getItem("authToken")}`,
+                    Accept: "application/json",
+                },
+            });
 
-                // Cập nhật lại bài viết trong danh sách
-                setPosts((prev) =>
-                    prev.map((p) => (p.id === postId ? res.data.post : p))
-                );
+            // Cập nhật lại bài viết trong danh sách
+            setPosts((prev) =>
+                prev.map((p) => (p.id === postId ? res.data.post : p))
+            );
 
-                toast.success("Cập nhật bài viết thành công!");
-                setIsEditModalOpen(false);
-                setEditingPost(null);
-            } catch (err) {
-                toast.error("Cập nhật bài viết thất bại!");
-                console.error(err);
-            }
-        };
+            toast.success("Cập nhật bài viết thành công!");
+            setIsEditModalOpen(false);
+            setEditingPost(null);
+        } catch (err) {
+            toast.error("Cập nhật bài viết thất bại!");
+            console.error(err);
+        }
+    };
 
-        return (
-            <>
+    return (
+        <>
             {postsToRender.map((post) => (
                 <div key={post.id} className="bg-white p-4 rounded-lg shadow-md mb-6">
                     <div className="flex items-center justify-between mb-4">
@@ -719,7 +719,41 @@ const ListPostUser = ({
                             </div>
                         </div>
                     )}
+                    {post.images && post.images.length > 3 && (
+                        <div className="grid grid-cols-3 gap-2">
+                            {/* Ảnh lớn bên trái */}
+                            <div className="relative col-span-2">
+                                <img
+                                    src={post.images[0]}
+                                    alt="Main"
+                                    className="w-full h-full object-cover rounded-lg cursor-pointer"
+                                    onClick={() => handleImageClick(post.images[0])}
+                                />
+                            </div>
 
+                            {/* Hai ảnh bên phải */}
+                            <div className="grid grid-rows-2 gap-2 relative">
+                                {post.images.slice(1, 3).map((img, index) => (
+                                    <div key={index} className="relative">
+                                        <img
+                                            src={img}
+                                            alt={`Image ${index + 1}`}
+                                            className={`w-full h-full object-cover rounded-lg cursor-pointer ${index === 1 && post.images.length > 3 ? "opacity-50" : ""}`}
+                                            onClick={() => handleImageClick(img)}
+                                        />
+                                        {/* Nếu có nhiều hơn 3 ảnh, hiển thị overlay số lượng ảnh bị ẩn */}
+                                        {index === 1 && post.images.length > 3 && (
+                                            <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-50 rounded-lg">
+                                                <span className="text-white text-2xl font-bold">
+                                                    +{post.images.length - 3}
+                                                </span>
+                                            </div>
+                                        )}
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    )}
                     {/* Cảm xúc tổng hợp */}
                     <div className="flex items-center text-gray-600 text-sm mt-4">
                         {/* Cảm xúc tổng hợp - nằm bên trái (nếu có) */}

@@ -64,6 +64,14 @@ const Home = () => {
         const selectedFiles = Array.from(e.target.files).filter(
             (file) => file instanceof File
         );
+
+        // Kiểm tra từng file có vượt quá 5MB hay không
+        const isTooLarge = selectedFiles.some((file) => file.size > 5 * 1024 * 1024);
+
+        if (isTooLarge) {
+            alert("Một hoặc nhiều file lớn hơn 5MB. Vui lòng chọn file nhỏ hơn.");
+            return;
+        }
         setFiles(selectedFiles); // Lưu file trực tiếp
     };
     const handleRemoveImage = (index) => {
@@ -1353,6 +1361,41 @@ const Home = () => {
                                             className="w-full h-full object-cover rounded-lg cursor-pointer"
                                             onClick={() => handleImageClick(img)}
                                         />
+                                    ))}
+                                </div>
+                            </div>
+                        )}
+                        {post.images && post.images.length > 3 && (
+                            <div className="grid grid-cols-3 gap-2">
+                                {/* Ảnh lớn bên trái */}
+                                <div className="relative col-span-2">
+                                    <img
+                                        src={post.images[0]}
+                                        alt="Main"
+                                        className="w-full h-full object-cover rounded-lg cursor-pointer"
+                                        onClick={() => handleImageClick(post.images[0])}
+                                    />
+                                </div>
+
+                                {/* Hai ảnh bên phải */}
+                                <div className="grid grid-rows-2 gap-2 relative">
+                                    {post.images.slice(1, 3).map((img, index) => (
+                                        <div key={index} className="relative">
+                                            <img
+                                                src={img}
+                                                alt={`Image ${index + 1}`}
+                                                className={`w-full h-full object-cover rounded-lg cursor-pointer ${index === 1 && post.images.length > 3 ? "opacity-50" : ""}`}
+                                                onClick={() => handleImageClick(img)}
+                                            />
+                                            {/* Nếu có nhiều hơn 3 ảnh, hiển thị overlay số lượng ảnh bị ẩn */}
+                                            {index === 1 && post.images.length > 3 && (
+                                                <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-50 rounded-lg">
+                                                    <span className="text-white text-2xl font-bold">
+                                                        +{post.images.length - 3}
+                                                    </span>
+                                                </div>
+                                            )}
+                                        </div>
                                     ))}
                                 </div>
                             </div>

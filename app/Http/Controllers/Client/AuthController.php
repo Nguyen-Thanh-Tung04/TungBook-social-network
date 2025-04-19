@@ -8,6 +8,9 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
+use App\Models\Post;
+use App\Models\PostMedia;
+
 
 class AuthController extends Controller
 {
@@ -108,5 +111,27 @@ public function me(Request $request)
             'avatar_url' => asset('storage/' . $path),
         ]);
     }
+    
 
+    public function imgProfile(Request $request)
+    {
+        $user = Auth::user();
+    
+        // Lấy tất cả các bài viết của user hiện tại kèm media
+        $posts = Post::where('user_id', $user->id)->with('media')->get();
+    
+        // Lấy ra tất cả đường dẫn ảnh
+        $images = $posts->flatMap(function ($post) {
+            return $post->media->map(function ($m) {
+                return asset('storage/' . $m->file_path);
+            });
+        })->toArray();
+    
+        return response()->json([
+            'user' => $user,
+            'images' => $images,
+        ]);
+    }
+    
+    
 }
