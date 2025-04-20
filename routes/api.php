@@ -9,6 +9,7 @@ use App\Http\Controllers\Client\PostController;
 use App\Http\Controllers\Client\ReactionController;
 use App\Http\Controllers\Client\ShareController;
 use App\Http\Controllers\Client\CommentController;
+use App\Http\Controllers\Client\FriendController;
 
 /*
 |--------------------------------------------------------------------------
@@ -68,3 +69,13 @@ Route::middleware('auth:sanctum')->group(function () {
 Route::delete('/comments/{id}', [CommentController::class, 'destroy']);
 
 Route::middleware('auth:sanctum')->get('/user/media', [AuthController::class, 'imgProfile']);
+
+Route::middleware('auth:sanctum')->group(function () {
+    Route::get('/friends', [FriendController::class, 'getFriends']);
+    Route::post('/friends/send/{friend_id}', [FriendController::class, 'sendRequest']);
+    Route::put('/friends/accept/{request_id}', [FriendController::class, 'acceptRequest']);
+    Route::delete('/friends/remove/{friend_id}', [FriendController::class, 'unfriend']);
+    Route::get('/friends/suggestions', [FriendController::class, 'getSuggestions']);
+    Route::get('/friends/requests', [FriendController::class, 'getFriendRequests']);
+
+});
