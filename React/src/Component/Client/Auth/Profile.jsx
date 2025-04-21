@@ -15,20 +15,7 @@ import { toast } from "react-toastify";
 
 
 function ProfilePage() {
-    const [activeTab, setActiveTab] = useState("first");
 
-    // Tab con trong "Friends"
-    const [activeSubTab, setActiveSubTab] = useState("all");
-    const [isImageModalOpen, setIsImageModalOpen] = useState(false);
-    const [isFileModalOpen, setIsFileModalOpen] = useState(false);
-    const fileInputRef = useRef(null);
-    const [userData, setUserData] = useState({
-        name: '',
-        avatar_url: '',
-        posts: 0,
-        followers: 0,
-        following: 0,
-    });
 
     // thông tin cá nhân 
     const [isInfoModalOpen, setIsInfoModalOpen] = useState(false); // Cho modal thông tin cá nhân
@@ -48,12 +35,6 @@ function ProfilePage() {
             ...formData,
             [name]: value
         });
-    };
-
-    // Tab bạn bè 
-    // Hàm thay đổi tab con trong "Friends"
-    const handleSubTabClick = (tab) => {
-        setActiveSubTab(tab);
     };
 
     // Dữ liệu bạn bè (mô phỏng)
@@ -409,9 +390,144 @@ function ProfilePage() {
         fetchUserImages();
     }, []);
 
+    // Tab bạn bè 
+    const [activeTab, setActiveTab] = useState("first");
+
+    // Tab con trong "Friends"
+    const [activeSubTab, setActiveSubTab] = useState("all");
+    const [isImageModalOpen, setIsImageModalOpen] = useState(false);
+    const [isFileModalOpen, setIsFileModalOpen] = useState(false);
+    const fileInputRef = useRef(null);
+    const [userData, setUserData] = useState({
+        name: '',
+        avatar_url: '',
+        posts: 0,
+        followers: 0,
+        following: 0,
+    });
+    // Hàm thay đổi tab con trong "Friends"
+    const handleSubTabClick = (tab) => {
+        setActiveSubTab(tab);
+    };
+
+    const [filter, setFilter] = useState("requests");
+    const [search, setSearch] = useState("");
+    const [friends, setFriends] = useState([]);
+
+    // Fetch friends theo filter
+    const fetchFriendsByFilter = async () => {
+        try {
+            let url = "http://localhost:8000/api/friends";
+
+            if (filter === "suggestions") {
+                url = "http://localhost:8000/api/friends/suggestions";
+            } else if (filter === "requests") {
+                url = "http://localhost:8000/api/friends/requests";
+            }
+
+            const res = await axios.get(url, {
+                headers: {
+                    Authorization: `Bearer ${localStorage.getItem("authToken")}`,
+                    Accept: "application/json",
+                },
+            });
+
+            setFriends(res.data.friends);
+        } catch (error) {
+            console.error("Lỗi khi lấy danh sách bạn bè:", error);
+        }
+    };
+
+    // Gọi lại khi filter thay đổi
+    useEffect(() => {
+        fetchFriendsByFilter();
+    }, [filter]);
+
+    // Lọc theo search
+    const filteredFriends = friends.filter((friend) =>
+        friend.name?.toLowerCase().includes(search.toLowerCase())
+    );
+
+    // Chập nhận hoặc từ chối lời mời
+    const handleAccept = async (requestId) => {
+        try {
+            await axios.put(`http://localhost:8000/api/friends/accept/${requestId}`, {}, {
+                headers: {
+                    Authorization: `Bearer ${localStorage.getItem("authToken")}`,
+                },
+            });
+            toast.success("Đã chấp nhận lời mời kết bạn!");
+            setFriends((prev) =>
+                prev.filter((friend) => friend.request_id !== requestId)
+            );
+        } catch (error) {
+            console.error("Lỗi khi chấp nhận lời mời:", error);
+        }
+    };
+
+    const handleReject = async (friendId) => {
+        try {
+            await axios.delete(`http://localhost:8000/api/friends/remove/${friendId}`, {
+                headers: {
+                    Authorization: `Bearer ${localStorage.getItem("authToken")}`,
+                },
+            });
+            setFriends((prev) =>
+                prev.filter((friend) => friend.id !== friendId)
+            );
+        } catch (error) {
+            console.error("Lỗi khi từ chối/hủy kết bạn:", error);
+        }
+    };
+
+
+    // tab bạn bè 
+    const [openMenuId, setOpenMenuId] = useState(null);
+
+    const toggleFriendMenu = (id) => {
+        setOpenMenuId((prev) => (prev === id ? null : id));
+    };
+    useEffect(() => {
+        const handleClickOutside = (event) => {
+            if (!event.target.closest(".friend-menu")) {
+                setOpenMenuId(null);
+            }
+        };
+        document.addEventListener("mousedown", handleClickOutside);
+        return () => document.removeEventListener("mousedown", handleClickOutside);
+    }, []);
+
+    // Gửi lời mời kết bạn
+    const handleSendFriendRequest = async (friendId) => {
+        try {
+            const res = await axios.post(
+                `http://localhost:8000/api/friends/send/${friendId}`,
+                {},
+                {
+                    headers: {
+                        Authorization: `Bearer ${localStorage.getItem("authToken")}`,
+                        Accept: "application/json",
+                    },
+                }
+            );
+            toast.success("✅ Đã gửi lời mời kết bạn!");
+            // Cập nhật UI: ẩn khỏi danh sách gợi ý
+            setFriends((prev) => prev.filter((f) => f.id !== friendId));
+        } catch (error) {
+            toast.error("❌ Lỗi khi gửi lời mời");
+            console.error("Gửi lời mời thất bại:", error);
+        }
+    };
+
+    // Gỡ gợi ý
+    const handleRemoveSuggestion = (friendId) => {
+        setFriends((prev) => prev.filter((f) => f.id !== friendId));
+    };
+
+
 
     return (
-        <div className=" bg-gray-100 min-h-fit ">
+        <div className=" bg-gray-100 min-h-fit" style={{ width: "70vw" }}>
             {/* Header */}
             <div className="bg-gradient-to-r from-blue-500 to-teal-400 p-6 flex items-center justify-between relative">
                 <div className="flex items-center">
@@ -508,14 +624,18 @@ function ProfilePage() {
                         About
                     </button>
                     <button
-                        onClick={() => setActiveTab("third")}
-                        className={`w-full py-2 px-4  transition-colors duration-300 ${activeTab === "third"
-                            ? "bg-blue-500 text-white"
-                            : "bg-transparent text-gray-600 hover:bg-blue-500 hover:text-white"
+                        onClick={() => {
+                            setActiveTab("third");
+                            setFilter("all"); // ✅ Khi mở tab Friends => fetch danh sách bạn
+                        }}
+                        className={`w-full py-2 px-4 transition-colors duration-300 ${activeTab === "third"
+                                ? "bg-blue-500 text-white"
+                                : "bg-transparent text-gray-600 hover:bg-blue-500 hover:text-white"
                             } focus:outline-none focus:ring-2 focus:ring-blue-500`}
                     >
                         Friends
                     </button>
+
                     <button
                         onClick={() => setActiveTab("forth")}
                         className={`w-full py-2 px-4 transition-colors duration-300 ${activeTab === "forth"
@@ -630,7 +750,7 @@ function ProfilePage() {
                                             />
                                         ))}
                                     </div>
-                                    
+
                                 </div>
                             </div>
 
@@ -879,32 +999,74 @@ function ProfilePage() {
 
                                 {/* Hiển thị bạn bè dựa trên tab con đã chọn */}
                                 <div className="grid grid-cols-2 gap-6">
-                                    {friendsData[activeSubTab]?.map((friend, index) => (
-                                        <div
-                                            key={index}
-                                            className="flex items-center justify-between p-4 border rounded shadow-sm bg-gray-50"
-                                        >
-                                            <div className="flex items-center">
-                                                <img
-                                                    src={friend.img}
-                                                    alt={friend.name}
-                                                    className="w-16 h-16 rounded-full mr-4"
-                                                />
-                                                <div>
-                                                    <h3 className="font-semibold text-gray-800">
-                                                        {friend.name}
-                                                    </h3>
-                                                    <p className="text-sm text-gray-600">
-                                                        {friend.friends}
-                                                    </p>
+                                    {friends
+                                        .filter((friend) => {
+                                            if (activeSubTab === "recentlyAdded") {
+                                                return friend.recently_added === true; // bạn cần API trả thêm cờ này
+                                            }
+                                            if (activeSubTab === "closeFriends") {
+                                                return friend.close === true; // hoặc gắn cờ từ API
+                                            }
+                                            if (activeSubTab === "homeTown") {
+                                                return friend.from_hometown === true; // API thêm field
+                                            }
+                                            if (activeSubTab === "following") {
+                                                return friend.is_following === true;
+                                            }
+                                            return true; // default là All Friends
+                                        })
+                                        .map((friend) => (
+                                            <div
+                                                key={friend.id}
+                                                className="flex items-center justify-between p-4 border rounded shadow-sm bg-gray-50"
+                                            >
+                                                <div className="flex items-center">
+                                                    <img
+                                                        src={friend.avatar || "/storage/avatars/no-avatar.jpg"}
+                                                        alt={friend.name}
+                                                        className="w-16 h-16 rounded-full mr-4"
+                                                    />
+                                                    <div>
+                                                        <h3 className="font-semibold text-gray-800">
+                                                            {friend.name}
+                                                        </h3>
+                                                        <p className="text-sm text-gray-600">
+                                                            {friend.mutualFriends} bạn chung
+                                                        </p>
+                                                    </div>
+                                                </div>
+                                                <div className="relative friend-menu">
+                                                    <button
+                                                        className="bg-gray-300 text-gray-700 px-4 py-2 rounded"
+                                                        onClick={() => toggleFriendMenu(friend.id)}
+                                                    >
+                                                        Bạn bè
+                                                    </button>
+
+                                                    {openMenuId === friend.id && (
+                                                        <div className="absolute right-0 mt-2 w-40 bg-white border border-gray-200 rounded shadow-md z-10 text-sm">
+                                                            <button
+                                                                className="w-full text-left px-4 py-2 hover:bg-gray-100"
+                                                                onClick={() => {
+                                                                    toast.info("🚫 Đã hủy theo dõi!");
+                                                                    setOpenMenuId(null);
+                                                                }}
+                                                            >
+                                                                Hủy theo dõi
+                                                            </button>
+                                                            <button
+                                                                className="w-full text-left px-4 py-2 text-red-500 hover:bg-gray-100"
+                                                                onClick={() => handleReject(friend.id)}
+                                                            >
+                                                                Hủy kết bạn
+                                                            </button>
+                                                        </div>
+                                                    )}
                                                 </div>
                                             </div>
-                                            <button className="bg-gray-300 text-gray-700 px-4 py-2 rounded">
-                                                Friend
-                                            </button>
-                                        </div>
-                                    ))}
+                                        ))}
                                 </div>
+
                             </div>
                         </div>
                     </div>
@@ -938,7 +1100,7 @@ function ProfilePage() {
                                         />
                                     ))}
                                 </div>
-                                
+
                             </div>
                         </div>
                     </div>

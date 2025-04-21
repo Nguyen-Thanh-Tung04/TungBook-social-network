@@ -51,7 +51,7 @@ function Friends() {
                     Authorization: `Bearer ${localStorage.getItem("authToken")}`,
                 },
             });
-            toast.success("✅ Đã chấp nhận lời mời kết bạn!");
+            toast.success("Đã chấp nhận lời mời kết bạn!");
             setFriends((prev) =>
                 prev.filter((friend) => friend.request_id !== requestId)
             );

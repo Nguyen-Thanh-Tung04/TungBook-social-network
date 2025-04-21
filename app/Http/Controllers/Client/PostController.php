@@ -61,6 +61,7 @@ class PostController extends Controller
                 ]),
                 'shares' => $post->shares->count(),
                 'comments_count' => $post->comments->count(), // ✅ Tổng số bình luận
+                'created_at' => $post->created_at->toIso8601String(),
             ];
         });
     

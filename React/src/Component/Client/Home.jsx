@@ -7,6 +7,10 @@ import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import EmojiPicker from 'emoji-picker-react';
 import PostModal from "./js/PostForm";
+import dayjs from "dayjs";
+import relativeTime from "dayjs/plugin/relativeTime";
+dayjs.extend(relativeTime);
+
 
 const Home = () => {
 
@@ -1273,7 +1277,7 @@ const Home = () => {
                                 <img src={post.user.avatar} alt="User Avatar" className="w-10 h-10 rounded-full" />
                                 <div className="ml-3 flex-1">
                                     <h4 className="text-sm font-medium text-gray-800">{post.user.name}</h4>
-                                    <p className="text-xs text-blue-500">Just Now</p>
+                                    <p className="text-xs text-blue-500">{dayjs(post.created_at).fromNow()}</p>
                                 </div>
                             </div>
                             <div className="relative inline-block">

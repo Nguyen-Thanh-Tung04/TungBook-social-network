@@ -5,6 +5,9 @@ import axios from "axios";
 import { toast } from "react-toastify";
 import EmojiPicker from 'emoji-picker-react';
 import { FaVideo, FaPhotoVideo, FaSmile } from "react-icons/fa"; // Import các icon cần dùng
+import dayjs from "dayjs";
+import relativeTime from "dayjs/plugin/relativeTime";
+dayjs.extend(relativeTime);
 
 
 const ListPostUser = ({
@@ -620,95 +623,82 @@ const ListPostUser = ({
 
     return (
         <>
-            {postsToRender.map((post) => (
-                <div key={post.id} className="bg-white p-4 rounded-lg shadow-md mb-6">
-                    <div className="flex items-center justify-between mb-4">
-                        <div className="flex items-center">
-                            <img
-                                src={post.user.avatar}
-                                alt="User Avatar"
-                                className="w-10 h-10 rounded-full"
-                            />
-                            <div className="ml-3">
-                                <h4 className="text-sm font-medium">{post.user.name}</h4>
-                                <p className="text-xs text-blue-500">Just now</p>
-                            </div>
-                        </div>
-                        <div className="relative inline-block">
-                            <button
-                                ref={buttonRef}
-                                onClick={() => togglePostOptionsModal(post.id)}
-                                className="text-gray-500"
-                            >
-                                <IoEllipsisHorizontal size={20} />
-                            </button>
-                            {openPostOptionsId === post.id && (
-                                <div
-                                    ref={modalRef}
-                                    className="absolute right-0 mt-2 w-48 bg-white border rounded shadow-lg"
-                                >
-                                    <button
-                                        className="w-full text-left py-2 px-4 hover:bg-gray-100"
-                                        onClick={() => {
-                                            setEditingPost(post);        // ✅ truyền bài viết cần sửa vào state
-                                            togglePostModal();           // ✅ mở lại modal tạo/sửa bài viết
-                                            setFiles(post.images || []); // 👈 load ảnh cũ vào state
-
-                                        }}
-                                    >
-                                        ✏️ Chỉnh sửa bài viết
-                                    </button>
-
-
-                                    <button className="px-4 py-2 w-full text-left hover:bg-gray-100">
-                                        🔒 Đổi đối tượng
-                                    </button>
-                                    <button
-                                        className="px-4 py-2 w-full text-left text-red-500 hover:bg-gray-100"
-                                        onClick={() => handleDeletePost(post.id)}
-                                    >
-                                        🗑️ Xoá bài viết
-                                    </button>
+            {postsToRender.length === 0 ? (
+                <div className="text-center text-gray-500 py-10">
+                    <p className="text-lg">📝 Chưa có bài post nào</p>
+                    <p className="text-sm text-gray-400">Hãy tạo bài viết đầu tiên của bạn!</p>
+                </div>
+            ) : (
+                postsToRender.map((post) => (
+                    <div key={post.id} className="bg-white p-4 rounded-lg shadow-md mb-6">
+                        <div className="flex items-center justify-between mb-4">
+                            <div className="flex items-center">
+                                <img
+                                    src={post.user.avatar}
+                                    alt="User Avatar"
+                                    className="w-10 h-10 rounded-full"
+                                />
+                                <div className="ml-3">
+                                    <h4 className="text-sm font-medium">{post.user.name}</h4>
+                                    <p className="text-xs text-gray-500">
+                                        {dayjs(post.created_at).fromNow()}
+                                    </p>
                                 </div>
-                            )}
-                        </div>
-                    </div>
-
-                    <p className="text-sm mb-4 text-gray-700">{post.content}</p>
-
-                    {/* Hiển thị ảnh */}
-                    {post.images?.length === 1 && (
-                        <img
-                            src={post.images[0]}
-                            className="w-full h-auto rounded-lg cursor-pointer"
-                            onClick={() => handleImageViewer(post.images[0])}
-                        />
-                    )}
-
-                    {post.images?.length === 2 && (
-                        <div className="grid grid-cols-2 gap-4">
-                            {post.images.map((img, i) => (
-                                <img
-                                    key={i}
-                                    src={img}
-                                    className="w-full h-full rounded-lg object-cover cursor-pointer"
-                                    onClick={() => handleImageViewer(img)}
-                                />
-                            ))}
-                        </div>
-                    )}
-
-                    {post.images?.length === 3 && (
-                        <div className="grid grid-cols-3 gap-4">
-                            <div className="col-span-2">
-                                <img
-                                    src={post.images[0]}
-                                    className="w-full h-full rounded-lg object-cover cursor-pointer"
-                                    onClick={() => handleImageViewer(post.images[0])}
-                                />
                             </div>
-                            <div className="grid grid-rows-2 gap-4">
-                                {post.images.slice(1).map((img, i) => (
+                            <div className="relative inline-block">
+                                <button
+                                    ref={buttonRef}
+                                    onClick={() => togglePostOptionsModal(post.id)}
+                                    className="text-gray-500"
+                                >
+                                    <IoEllipsisHorizontal size={20} />
+                                </button>
+                                {openPostOptionsId === post.id && (
+                                    <div
+                                        ref={modalRef}
+                                        className="absolute right-0 mt-2 w-48 bg-white border rounded shadow-lg"
+                                    >
+                                        <button
+                                            className="w-full text-left py-2 px-4 hover:bg-gray-100"
+                                            onClick={() => {
+                                                setEditingPost(post);        // ✅ truyền bài viết cần sửa vào state
+                                                togglePostModal();           // ✅ mở lại modal tạo/sửa bài viết
+                                                setFiles(post.images || []); // 👈 load ảnh cũ vào state
+
+                                            }}
+                                        >
+                                            ✏️ Chỉnh sửa bài viết
+                                        </button>
+
+
+                                        <button className="px-4 py-2 w-full text-left hover:bg-gray-100">
+                                            🔒 Đổi đối tượng
+                                        </button>
+                                        <button
+                                            className="px-4 py-2 w-full text-left text-red-500 hover:bg-gray-100"
+                                            onClick={() => handleDeletePost(post.id)}
+                                        >
+                                            🗑️ Xoá bài viết
+                                        </button>
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+
+                        <p className="text-sm mb-4 text-gray-700">{post.content}</p>
+
+                        {/* Hiển thị ảnh */}
+                        {post.images?.length === 1 && (
+                            <img
+                                src={post.images[0]}
+                                className="w-full h-auto rounded-lg cursor-pointer"
+                                onClick={() => handleImageViewer(post.images[0])}
+                            />
+                        )}
+
+                        {post.images?.length === 2 && (
+                            <div className="grid grid-cols-2 gap-4">
+                                {post.images.map((img, i) => (
                                     <img
                                         key={i}
                                         src={img}
@@ -717,173 +707,195 @@ const ListPostUser = ({
                                     />
                                 ))}
                             </div>
-                        </div>
-                    )}
-                    {post.images && post.images.length > 3 && (
-                        <div className="grid grid-cols-3 gap-2">
-                            {/* Ảnh lớn bên trái */}
-                            <div className="relative col-span-2">
-                                <img
-                                    src={post.images[0]}
-                                    alt="Main"
-                                    className="w-full h-full object-cover rounded-lg cursor-pointer"
-                                    onClick={() => handleImageClick(post.images[0])}
-                                />
-                            </div>
-
-                            {/* Hai ảnh bên phải */}
-                            <div className="grid grid-rows-2 gap-2 relative">
-                                {post.images.slice(1, 3).map((img, index) => (
-                                    <div key={index} className="relative">
-                                        <img
-                                            src={img}
-                                            alt={`Image ${index + 1}`}
-                                            className={`w-full h-full object-cover rounded-lg cursor-pointer ${index === 1 && post.images.length > 3 ? "opacity-50" : ""}`}
-                                            onClick={() => handleImageClick(img)}
-                                        />
-                                        {/* Nếu có nhiều hơn 3 ảnh, hiển thị overlay số lượng ảnh bị ẩn */}
-                                        {index === 1 && post.images.length > 3 && (
-                                            <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-50 rounded-lg">
-                                                <span className="text-white text-2xl font-bold">
-                                                    +{post.images.length - 3}
-                                                </span>
-                                            </div>
-                                        )}
-                                    </div>
-                                ))}
-                            </div>
-                        </div>
-                    )}
-                    {/* Cảm xúc tổng hợp */}
-                    <div className="flex items-center text-gray-600 text-sm mt-4">
-                        {/* Cảm xúc tổng hợp - nằm bên trái (nếu có) */}
-                        {postSummaries[post.id] && Object.keys(postSummaries[post.id]).length > 0 && (
-                            <div
-                                className="flex items-center space-x-1 cursor-pointer"
-                                onClick={() => openLikesModal(post.id)}
-                            >
-                                {Object.entries(postSummaries[post.id]).map(
-                                    ([type, count]) =>
-                                        count > 0 && (
-                                            <span key={type} className="text-xl">
-                                                {reactionTypes[type]}
-                                            </span>
-                                        )
-                                )}
-                                <span className="text-sm font-medium">
-                                    {Object.values(postSummaries[post.id]).reduce((a, b) => a + b, 0)}
-                                </span>
-                            </div>
                         )}
 
-                        {/* Bình luận và chia sẻ - luôn đẩy sang phải */}
-                        <div className="flex space-x-4 text-gray-500 text-sm ml-auto">
-                            <span className="flex items-center space-x-1">
-                                💬 <span>{post.comments_count || 0}</span>
-                            </span>
-
-                            <span className="flex items-center space-x-1">
-                                🔁 <span>{post.shares}</span>
-                            </span>
-                        </div>
-                    </div>
-
-
-                    {/* Nút Thích - Bình luận - Chia sẻ */}
-                    <div className="flex justify-around items-center text-gray-600 text-sm mt-2 border-t pt-2">
-                        <div
-                            className="relative flex-1 flex justify-center"
-                            onPointerEnter={() => setHoveredPostId(post.id)}
-                            onPointerLeave={() => setHoveredPostId(null)}
-                        >
-                            <button
-                                onClick={() => {
-                                    const currentReaction = postReactions[post.id];
-                                    if (currentReaction) {
-                                        handleReactionClick(reactionTypes[currentReaction], post.id); // gỡ
-                                    } else {
-                                        handleReactionClick('👍', post.id); // chưa có → like
-                                    }
-                                }}
-                                className={`flex items-center space-x-1 font-semibold transition 
-    ${postReactions[post.id] ? 'text-blue-600' : 'text-gray-600 hover:text-blue-500'}`}
-                            >
-                                <span
-                                    className={`text-xl transition-transform duration-500 ease-out 
-    ${activeReactionPostId === post.id ? 'scale-150' : 'scale-100'}`}
-                                >
-                                    {reactionTypes[postReactions[post.id]] || '👍'}
-                                </span>
-
-                                <span>
-                                    {postReactions[post.id]
-                                        ? {
-                                            like: 'Thích',
-                                            love: 'Yêu thích',
-                                            care: 'Quan tâm',
-                                            haha: 'Haha',
-                                            wow: 'Wow',
-                                            sad: 'Buồn',
-                                            angry: 'Phẫn nộ',
-                                        }[postReactions[post.id]]
-                                        : 'Thích'}
-                                </span>
-                            </button>
-
-
-                            {/* Hover menu cảm xúc */}
-                            <div className={`absolute -top-16 left-1/2 -translate-x-1/2 flex justify-start text-2xl items-center shadow-xl z-10 bg-white dark:bg-[#191818] gap-2 p-2 rounded-full transition-all duration-300 ${hoveredPostId === post.id ? 'opacity-100 visible' : 'opacity-0 invisible'
-                                }`}>
-                                {Object.values(reactionTypes).map((icon, index) => (
-                                    <button
-                                        key={index}
-                                        className="hover:scale-125 transition-transform rounded-full w-10 h-10 flex items-center justify-center shadow text-xl"
-                                        onClick={() => handleReactionClick(icon, post.id)}
-                                    >
-                                        {icon}
-                                    </button>
-                                ))}
-                            </div>
-                        </div>
-
-                        {/* Bình luận */}
-                        <button onClick={() => openCommentsModal(post.id)} className="flex-1 flex justify-center items-center space-x-1 font-semibold">
-                            <span>💬</span><span>Bình luận</span>
-                        </button>
-
-                        {/* Chia sẻ */}
-                        <button className="flex-1 flex justify-center items-center space-x-1 font-semibold">
-                            <span>🔁</span><span>Chia sẻ</span>
-                        </button>
-                    </div>
-
-                    {/* Hiển thị bình luận ngắn */}
-                    <div className="space-y-2">
-                        {post.comments?.slice(0, 2).map((comment, i) => (
-                            <div key={i} className="flex items-start space-x-3">
-                                <img
-                                    src={comment.user.avatar}
-                                    className="w-8 h-8 rounded-full"
-                                />
-                                <div>
-                                    <h5 className="text-sm font-medium">{comment.user.name}</h5>
-                                    <p className="text-xs text-gray-600">{comment.text}</p>
+                        {post.images?.length === 3 && (
+                            <div className="grid grid-cols-3 gap-4">
+                                <div className="col-span-2">
+                                    <img
+                                        src={post.images[0]}
+                                        className="w-full h-full rounded-lg object-cover cursor-pointer"
+                                        onClick={() => handleImageViewer(post.images[0])}
+                                    />
+                                </div>
+                                <div className="grid grid-rows-2 gap-4">
+                                    {post.images.slice(1).map((img, i) => (
+                                        <img
+                                            key={i}
+                                            src={img}
+                                            className="w-full h-full rounded-lg object-cover cursor-pointer"
+                                            onClick={() => handleImageViewer(img)}
+                                        />
+                                    ))}
                                 </div>
                             </div>
-                        ))}
-                        {post.comments?.length > 2 && (
-                            <button
-                                className="text-blue-500 text-sm mt-1"
-                                onClick={() => openCommentsModal(post.id)}
-                            >
-                                Xem thêm bình luận...
-                            </button>
                         )}
+                        {post.images && post.images.length > 3 && (
+                            <div className="grid grid-cols-3 gap-2">
+                                {/* Ảnh lớn bên trái */}
+                                <div className="relative col-span-2">
+                                    <img
+                                        src={post.images[0]}
+                                        alt="Main"
+                                        className="w-full h-full object-cover rounded-lg cursor-pointer"
+                                        onClick={() => handleImageClick(post.images[0])}
+                                    />
+                                </div>
+
+                                {/* Hai ảnh bên phải */}
+                                <div className="grid grid-rows-2 gap-2 relative">
+                                    {post.images.slice(1, 3).map((img, index) => (
+                                        <div key={index} className="relative">
+                                            <img
+                                                src={img}
+                                                alt={`Image ${index + 1}`}
+                                                className={`w-full h-full object-cover rounded-lg cursor-pointer ${index === 1 && post.images.length > 3 ? "opacity-50" : ""}`}
+                                                onClick={() => handleImageClick(img)}
+                                            />
+                                            {/* Nếu có nhiều hơn 3 ảnh, hiển thị overlay số lượng ảnh bị ẩn */}
+                                            {index === 1 && post.images.length > 3 && (
+                                                <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-50 rounded-lg">
+                                                    <span className="text-white text-2xl font-bold">
+                                                        +{post.images.length - 3}
+                                                    </span>
+                                                </div>
+                                            )}
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
+                        {/* Cảm xúc tổng hợp */}
+                        <div className="flex items-center text-gray-600 text-sm mt-4">
+                            {/* Cảm xúc tổng hợp - nằm bên trái (nếu có) */}
+                            {postSummaries[post.id] && Object.keys(postSummaries[post.id]).length > 0 && (
+                                <div
+                                    className="flex items-center space-x-1 cursor-pointer"
+                                    onClick={() => openLikesModal(post.id)}
+                                >
+                                    {Object.entries(postSummaries[post.id]).map(
+                                        ([type, count]) =>
+                                            count > 0 && (
+                                                <span key={type} className="text-xl">
+                                                    {reactionTypes[type]}
+                                                </span>
+                                            )
+                                    )}
+                                    <span className="text-sm font-medium">
+                                        {Object.values(postSummaries[post.id]).reduce((a, b) => a + b, 0)}
+                                    </span>
+                                </div>
+                            )}
+
+                            {/* Bình luận và chia sẻ - luôn đẩy sang phải */}
+                            <div className="flex space-x-4 text-gray-500 text-sm ml-auto">
+                                <span className="flex items-center space-x-1">
+                                    💬 <span>{post.comments_count || 0}</span>
+                                </span>
+
+                                <span className="flex items-center space-x-1">
+                                    🔁 <span>{post.shares}</span>
+                                </span>
+                            </div>
+                        </div>
+
+
+                        {/* Nút Thích - Bình luận - Chia sẻ */}
+                        <div className="flex justify-around items-center text-gray-600 text-sm mt-2 border-t pt-2">
+                            <div
+                                className="relative flex-1 flex justify-center"
+                                onPointerEnter={() => setHoveredPostId(post.id)}
+                                onPointerLeave={() => setHoveredPostId(null)}
+                            >
+                                <button
+                                    onClick={() => {
+                                        const currentReaction = postReactions[post.id];
+                                        if (currentReaction) {
+                                            handleReactionClick(reactionTypes[currentReaction], post.id); // gỡ
+                                        } else {
+                                            handleReactionClick('👍', post.id); // chưa có → like
+                                        }
+                                    }}
+                                    className={`flex items-center space-x-1 font-semibold transition 
+    ${postReactions[post.id] ? 'text-blue-600' : 'text-gray-600 hover:text-blue-500'}`}
+                                >
+                                    <span
+                                        className={`text-xl transition-transform duration-500 ease-out 
+    ${activeReactionPostId === post.id ? 'scale-150' : 'scale-100'}`}
+                                    >
+                                        {reactionTypes[postReactions[post.id]] || '👍'}
+                                    </span>
+
+                                    <span>
+                                        {postReactions[post.id]
+                                            ? {
+                                                like: 'Thích',
+                                                love: 'Yêu thích',
+                                                care: 'Quan tâm',
+                                                haha: 'Haha',
+                                                wow: 'Wow',
+                                                sad: 'Buồn',
+                                                angry: 'Phẫn nộ',
+                                            }[postReactions[post.id]]
+                                            : 'Thích'}
+                                    </span>
+                                </button>
+
+
+                                {/* Hover menu cảm xúc */}
+                                <div className={`absolute -top-16 left-1/2 -translate-x-1/2 flex justify-start text-2xl items-center shadow-xl z-10 bg-white dark:bg-[#191818] gap-2 p-2 rounded-full transition-all duration-300 ${hoveredPostId === post.id ? 'opacity-100 visible' : 'opacity-0 invisible'
+                                    }`}>
+                                    {Object.values(reactionTypes).map((icon, index) => (
+                                        <button
+                                            key={index}
+                                            className="hover:scale-125 transition-transform rounded-full w-10 h-10 flex items-center justify-center shadow text-xl"
+                                            onClick={() => handleReactionClick(icon, post.id)}
+                                        >
+                                            {icon}
+                                        </button>
+                                    ))}
+                                </div>
+                            </div>
+
+                            {/* Bình luận */}
+                            <button onClick={() => openCommentsModal(post.id)} className="flex-1 flex justify-center items-center space-x-1 font-semibold">
+                                <span>💬</span><span>Bình luận</span>
+                            </button>
+
+                            {/* Chia sẻ */}
+                            <button className="flex-1 flex justify-center items-center space-x-1 font-semibold">
+                                <span>🔁</span><span>Chia sẻ</span>
+                            </button>
+                        </div>
+
+                        {/* Hiển thị bình luận ngắn */}
+                        <div className="space-y-2">
+                            {post.comments?.slice(0, 2).map((comment, i) => (
+                                <div key={i} className="flex items-start space-x-3">
+                                    <img
+                                        src={comment.user.avatar}
+                                        className="w-8 h-8 rounded-full"
+                                    />
+                                    <div>
+                                        <h5 className="text-sm font-medium">{comment.user.name}</h5>
+                                        <p className="text-xs text-gray-600">{comment.text}</p>
+                                    </div>
+                                </div>
+                            ))}
+                            {post.comments?.length > 2 && (
+                                <button
+                                    className="text-blue-500 text-sm mt-1"
+                                    onClick={() => openCommentsModal(post.id)}
+                                >
+                                    Xem thêm bình luận...
+                                </button>
+                            )}
+                        </div>
+
+
                     </div>
-
-
-                </div>
-            ))}
+                ))
+            )}
 
             {/* Modal ảnh xem lớn */}
             {selectedImage && (
