@@ -27,7 +27,7 @@ function RightSidebar() {
         <div className="bg-gray-100 w-full h-full p-4">
             <div className="space-y-6">
                 {friends.map((friend) => (
-                    <a href={`/user/${friend.id}`} key={friend.id}>
+                                        <a href="/chat">
                         <div className="flex items-center hover:bg-gray-200 p-2 rounded-lg">
                             <div className="relative">
                                 <img

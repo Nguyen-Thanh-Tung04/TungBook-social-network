@@ -10,6 +10,8 @@ use App\Http\Controllers\Client\ReactionController;
 use App\Http\Controllers\Client\ShareController;
 use App\Http\Controllers\Client\CommentController;
 use App\Http\Controllers\Client\FriendController;
+use App\Http\Controllers\Client\MessageController; // Ensure this line is present and the class exists in the specified namespace
+
 
 /*
 |--------------------------------------------------------------------------
@@ -78,4 +80,10 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/friends/suggestions', [FriendController::class, 'getSuggestions']);
     Route::get('/friends/requests', [FriendController::class, 'getFriendRequests']);
 
+});
+
+// messages
+Route::middleware('auth:sanctum')->group(function () {
+    Route::get('/messages/{userId}', [MessageController::class, 'index']);
+    Route::post('/messages', [MessageController::class, 'store']);
 });
